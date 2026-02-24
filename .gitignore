@@ -1,0 +1,12 @@
+*.env
+!*.env.example
+secrets/*.key
+secrets/*.pem
+secrets/*.crt
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.local.yml
+docker-compose.override.yml
