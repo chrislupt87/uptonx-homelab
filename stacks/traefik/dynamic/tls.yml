@@ -1,0 +1,17 @@
+# Traefik dynamic configuration — self-signed TLS defaults
+# Place your self-signed cert and key at:
+#   /mnt/nas/stacks/traefik/certs/cert.pem
+#   /mnt/nas/stacks/traefik/certs/key.pem
+#
+# Generate with:
+#   openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+#     -keyout /mnt/nas/stacks/traefik/certs/key.pem \
+#     -out /mnt/nas/stacks/traefik/certs/cert.pem \
+#     -subj "/CN=homelab.local"
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/cert.pem
+        keyFile: /certs/key.pem

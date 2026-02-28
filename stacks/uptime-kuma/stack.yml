@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    ports:
+      - target: 3001
+        published: 3001
+        mode: host
+    networks:
+      - proxy
+    volumes:
+      - /mnt/nas/stacks/uptime-kuma:/app/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.uptime-kuma.rule=Host(`192.168.1.80`) && PathPrefix(`/uptime`)"
+        - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
+        - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
+
+networks:
+  proxy:
+    external: true

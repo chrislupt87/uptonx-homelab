@@ -1,65 +1,63 @@
 # UptonX Homelab Infrastructure
 
 Orchestration: Docker Swarm | Hypervisor: Proxmox | Shell: zsh
+Status: Building out from Aux2 (192.168.1.80) — rolling deployment
 
-## Network
+## Nodes
 
-| Device | IP | Role |
-|--------|----|------|
-| UniFi Gateway | 192.168.1.1 | Router |
-| UGreen NAS | 192.168.1.11 | Storage |
-| Traefik | 192.168.1.12 | Reverse proxy |
-| Technitium DNS (LXC) | 192.168.1.15 | Primary DNS |
-| Aux | 192.168.1.18 | Proxmox node |
-| PBS | 192.168.1.19 | Proxmox Backup Server |
-| AI NUC | 192.168.1.69 | Always-on AI inference |
-| MSI Workstation | 192.168.1.74 | GPU node (AMD RX 7600) |
-| Control | 192.168.1.77 | Swarm manager |
-| Frigate | 192.168.1.80 | NVR / cameras |
-| Display Pi | 192.168.1.91 | Touchscreen dashboard |
-| Technitium DNS (Pi) | 192.168.1.92 | Secondary DNS |
+| Host | IP | User | Role |
+|------|----|------|------|
+| control | 192.168.1.77 | root | Swarm manager (pending) |
+| aux | 192.168.1.18 | root | Worker (pending) |
+| aux2 | 192.168.1.80 | root | Active — build node |
+| ai | 192.168.1.69 | root | AI inference (pending) |
+| msi | 192.168.1.74 | root | GPU node (pending) |
+| pbs | 192.168.1.19 | root | Proxmox Backup Server |
+| nas | 192.168.1.11 | chris-admin | UGreen NAS storage |
 
-## Swarm Layout
-```
-Control (1.77)     ← Swarm Manager
-├── AI NUC (1.69)  ← Worker [role=ai]
-├── MSI (1.74)     ← Worker [role=gpu]
-├── Frigate (1.80) ← Worker [role=camera]
-└── Aux (1.18)     ← Worker [role=general]
-```
+## Swarm Status
 
-## Service Map
+Single node for now — Aux2 only. Other nodes join as services are verified.
 
-| Service | Node | Port |
-|---------|------|------|
-| Traefik | Control | 80/443 |
-| Authentik | Control | 9000 |
-| Portainer | Control | 9443 |
-| Cloudflare Tunnel | Control | - |
-| Ollama | AI NUC | 11434 |
-| Qdrant | AI NUC | 6333 |
-| PostgreSQL | AI NUC | 5432 |
-| LiteLLM | AI NUC | 4000 |
-| RAG API | AI NUC | 8000 |
-| RAG UI | AI NUC | 3001 |
-| LibreChat | AI NUC | 3080 |
-| n8n | AI NUC | 5678 |
-| Frigate NVR | Frigate | 5000 |
+## Active Services
+
+| Service | Node | Port | Status |
+|---------|------|------|--------|
+| Traefik | Aux2 | 80/443 | 🔲 pending |
+
+## Deployment Order
+
+1. Docker on Aux2
+2. Swarm init on Aux2
+3. Traefik (reverse proxy + SSL)
+4. Core services one at a time
+5. Join next node, repeat
 
 ## Common Commands
 ```zsh
 # Deploy a stack
-docker stack deploy -c services/ai/ollama/stack.yml ollama
+docker stack deploy -c services/networking/traefik/stack.yml traefik
 
-# Deploy everything
-./scripts/deploy.zsh
-
-# Check health
-./scripts/health-check.zsh
-
-# View logs
-docker service logs <service_name> -f
-
-# Check nodes
+# Check cluster
 docker node ls
+
+# Check services
+docker service ls
+
+# Logs
+docker service logs <service> -f
+
+# Health check
+./scripts/health-check.zsh
+```
+
+## SSH Shortcuts
+```zsh
+ssh control   # 192.168.1.77
+ssh aux       # 192.168.1.18
+ssh aux2      # 192.168.1.80
+ssh ai        # 192.168.1.69
+ssh msi       # 192.168.1.74
+ssh pbs       # 192.168.1.19
+ssh nas       # 192.168.1.11
 ```

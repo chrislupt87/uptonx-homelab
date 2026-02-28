@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    networks:
+      - internal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      # Monitor-only mode — reports updates but does NOT auto-pull or restart
+      - WATCHTOWER_MONITOR_ONLY=true
+      # Nightly check at 3:00 AM
+      - WATCHTOWER_SCHEDULE=0 0 3 * * *
+      - WATCHTOWER_CLEANUP=false
+      # Notification webhook (uncomment and fill in before enabling)
+      # - WATCHTOWER_NOTIFICATION_URL=CHANGEME_YOUR_WEBHOOK_URL
+      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # Supported shoutrrr URLs:
+      #   Discord:  discord://token@webhookid
+      #   Slack:    slack://token-a/token-b/token-c
+      #   Generic:  generic://example.com/webhook
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.role == manager
+
+networks:
+  internal:
+    external: true
