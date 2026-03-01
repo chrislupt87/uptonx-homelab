@@ -13,7 +13,7 @@ server {
 
 client {
   enabled = true
-  servers = ["192.168.1.101:4647"]
+  servers = ["192.168.1.101:4647", "192.168.1.102:4647"]
 
   meta {
     "node.type" = "workstation"
