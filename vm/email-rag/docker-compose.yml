@@ -1,0 +1,41 @@
+services:
+  email-rag-api:
+    build: .
+    container_name: email-rag-api
+    network_mode: host
+    restart: always
+    env_file:
+      - secrets/email-rag.env
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - /mnt/nfs/volumes/email-rag:/mnt/nfs/volumes/email-rag
+    command: uvicorn email_rag.api.main:app --host 0.0.0.0 --port 8000
+
+  email-rag-ui:
+    build: .
+    container_name: email-rag-ui
+    network_mode: host
+    restart: always
+    env_file:
+      - secrets/email-rag.env
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - /mnt/nfs/volumes/email-rag:/mnt/nfs/volumes/email-rag
+    command: uvicorn email_rag.api.main:app --host 0.0.0.0 --port 3000
+
+  email-rag-ingest:
+    build: .
+    container_name: email-rag-ingest
+    network_mode: host
+    restart: "no"
+    env_file:
+      - secrets/email-rag.env
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - /mnt/nfs/volumes/email-rag:/mnt/nfs/volumes/email-rag
+    command: python -m email_rag.cli ingest-gmail
+    profiles:
+      - ingest

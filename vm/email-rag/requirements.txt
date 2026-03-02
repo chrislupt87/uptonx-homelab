@@ -1,0 +1,13 @@
+psycopg2-binary
+pgvector
+sqlalchemy
+tqdm
+python-dotenv
+click
+spacy
+fastapi
+uvicorn[standard]
+anthropic
+httpx
+python-multipart
+jinja2

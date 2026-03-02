@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email RAG</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 30px;
+            border-bottom: 1px solid #2a2a4a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; color: #7c83ff; }
+        .header .status { font-size: 13px; color: #888; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #12121f;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #7c83ff;
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .panel {
+            background: #12121f;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .panel h2 {
+            font-size: 16px;
+            color: #7c83ff;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #2a2a4a;
+            padding-bottom: 8px;
+        }
+        .query-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .query-box input {
+            flex: 1;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            color: #e0e0e0;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .query-box input:focus { outline: none; border-color: #7c83ff; }
+        .query-box button {
+            background: #7c83ff;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .query-box button:hover { background: #6a71e0; }
+        .answer-box {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            padding: 16px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .finding {
+            border-left: 3px solid #7c83ff;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            background: #1a1a2e;
+            border-radius: 0 6px 6px 0;
+        }
+        .finding .title { font-weight: 600; margin-bottom: 4px; }
+        .finding .meta { font-size: 12px; color: #888; }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        .tag.grounded { background: #1a4a1a; color: #4caf50; }
+        .tag.inferred { background: #4a4a1a; color: #ff9800; }
+        .tag.speculative { background: #4a1a1a; color: #f44336; }
+        .email-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #1a1a2e;
+            font-size: 13px;
+        }
+        .email-row .from { color: #7c83ff; min-width: 200px; }
+        .email-row .subject { flex: 1; margin: 0 12px; }
+        .email-row .date { color: #888; min-width: 120px; text-align: right; }
+        .priority { color: #ff9800 !important; }
+        #clock { font-size: 14px; color: #7c83ff; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Email RAG Intelligence</h1>
+        <div>
+            <span id="clock"></span>
+            <span class="status" id="ollama-status">Ollama: checking...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid" id="stats-grid"></div>
+
+        <div class="panel">
+            <h2>Ask a Question</h2>
+            <div class="query-box">
+                <input type="text" id="query-input" placeholder="Ask about emails, people, events...">
+                <button onclick="askQuestion()">Ask Claude</button>
+            </div>
+            <div class="answer-box" id="answer-box">Ask a question to get started.</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="panel">
+                <h2>Recent Findings</h2>
+                <div id="findings-list"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Recent Emails</h2>
+                <div id="emails-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function loadStats() {
+            try {
+                const r = await fetch(`${API}/api/stats`);
+                const data = await r.json();
+                const grid = document.getElementById('stats-grid');
+                const stats = [
+                    { label: 'Raw Messages', value: data.raw_messages },
+                    { label: 'Emails', value: data.emails },
+                    { label: 'Snippets', value: data.snippets },
+                    { label: 'Findings', value: data.findings },
+                    { label: 'Claims', value: data.claims },
+                    { label: 'Processed', value: data.processed },
+                    { label: 'Priority', value: data.subject_priority },
+                    { label: 'Ollama', value: data.ollama },
+                ];
+                grid.innerHTML = stats.map(s =>
+                    `<div class="stat-card"><div class="value">${s.value}</div><div class="label">${s.label}</div></div>`
+                ).join('');
+                document.getElementById('ollama-status').textContent = `Ollama: ${data.ollama}`;
+            } catch (e) {
+                console.error('Stats error:', e);
+            }
+        }
+
+        async function loadFindings() {
+            try {
+                const r = await fetch(`${API}/api/findings?limit=10`);
+                const data = await r.json();
+                const list = document.getElementById('findings-list');
+                list.innerHTML = data.map(f =>
+                    `<div class="finding">
+                        <div class="title">${f.title}</div>
+                        <div>${f.summary}</div>
+                        <div class="meta">
+                            <span class="tag ${f.grounding}">${f.grounding}</span>
+                            ${f.type} | confidence: ${(f.confidence * 100).toFixed(0)}%
+                            | ${new Date(f.created_at).toLocaleDateString()}
+                        </div>
+                    </div>`
+                ).join('') || '<div style="color:#888">No findings yet. Run analysis first.</div>';
+            } catch (e) {
+                console.error('Findings error:', e);
+            }
+        }
+
+        async function loadEmails() {
+            try {
+                const r = await fetch(`${API}/api/emails?limit=15&priority_only=true`);
+                const data = await r.json();
+                const list = document.getElementById('emails-list');
+                list.innerHTML = data.map(e =>
+                    `<div class="email-row">
+                        <span class="from ${e.priority ? 'priority' : ''}">${e.from}</span>
+                        <span class="subject">${e.subject || '(no subject)'}</span>
+                        <span class="date">${e.date ? new Date(e.date).toLocaleDateString() : ''}</span>
+                    </div>`
+                ).join('') || '<div style="color:#888">No emails yet. Run ingest first.</div>';
+            } catch (e) {
+                console.error('Emails error:', e);
+            }
+        }
+
+        async function askQuestion() {
+            const input = document.getElementById('query-input');
+            const box = document.getElementById('answer-box');
+            const question = input.value.trim();
+            if (!question) return;
+
+            box.textContent = 'Thinking...';
+            try {
+                const r = await fetch(`${API}/api/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question }),
+                });
+                const data = await r.json();
+                box.textContent = data.answer || data.error || 'No response';
+            } catch (e) {
+                box.textContent = `Error: ${e.message}`;
+            }
+        }
+
+        document.getElementById('query-input').addEventListener('keypress', e => {
+            if (e.key === 'Enter') askQuestion();
+        });
+
+        // Initial load and auto-refresh
+        loadStats();
+        loadFindings();
+        loadEmails();
+        setInterval(() => { loadStats(); loadFindings(); loadEmails(); }, 30000);
+    </script>
+</body>
+</html>

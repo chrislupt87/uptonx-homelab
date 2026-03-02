@@ -40,6 +40,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    email-rag:
+      rule: "Host(`email-rag.uptonx.com`)"
+      service: email-rag
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   services:
     infisical:
       loadBalancer:
@@ -61,6 +69,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.51:5380"
+
+    email-rag:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.110:3000"
 
     traefik-dashboard:
       loadBalancer:
