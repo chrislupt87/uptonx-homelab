@@ -146,6 +146,23 @@
 | nomad-msi (CT 105) | 192.168.1.105 | Client | Ready |
 | uptonx-workstation | 192.168.1.95 | Client | Ready |
 
+## Consul Cluster
+
+- **Version**: 1.22.5
+- **Datacenter**: uptonx
+- **UI**: http://192.168.1.101:8500
+- **Gossip encryption**: enabled
+- **Configs**: `/etc/consul.d/consul.hcl` on each node
+
+| Node | IP | Role | Status |
+|------|----|------|--------|
+| nomad (CT 100) | 192.168.1.101 | Server | Alive |
+| nomad2 (CT 103) | 192.168.1.102 | Server | Alive |
+| nomad3 (CT 104) | 192.168.1.104 | Server | Alive |
+| nomad-ai (CT 301) | 192.168.1.103 | Client | Alive |
+| nomad-msi (CT 105) | 192.168.1.105 | Client | Alive |
+| uptonx-workstation | 192.168.1.95 | Client | Alive |
+
 ## Services
 
 ### Managed by Nomad
