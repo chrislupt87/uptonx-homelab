@@ -24,6 +24,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    infisical:
+      rule: "Host(`infisical.uptonx.com`)"
+      service: infisical
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
     traefik-dashboard:
       rule: "Host(`traefik.uptonx.com`)"
       service: traefik-dashboard
@@ -33,6 +41,11 @@ http:
         certResolver: cloudflare
 
   services:
+    infisical:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.22:8080"
+
     gitea:
       loadBalancer:
         servers:
