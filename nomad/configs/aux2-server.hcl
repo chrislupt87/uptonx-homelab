@@ -9,15 +9,15 @@ advertise {
 
 server {
   enabled          = true
-  bootstrap_expect = 2
+  bootstrap_expect = 3
   server_join {
-    retry_join = ["192.168.1.101"]
+    retry_join = ["192.168.1.101", "192.168.1.104"]
   }
 }
 
 client {
   enabled = true
-  servers = ["192.168.1.101:4647", "192.168.1.102:4647"]
+  servers = ["192.168.1.101:4647", "192.168.1.102:4647", "192.168.1.104:4647"]
 
   meta {
     "node.type" = "server-lxc"

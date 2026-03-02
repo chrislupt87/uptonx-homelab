@@ -2,16 +2,16 @@ datacenter = "uptonx"
 data_dir   = "/opt/nomad/data"
 
 advertise {
-  http = "192.168.1.101"
-  rpc  = "192.168.1.101"
-  serf = "192.168.1.101"
+  http = "192.168.1.104"
+  rpc  = "192.168.1.104"
+  serf = "192.168.1.104"
 }
 
 server {
   enabled          = true
   bootstrap_expect = 3
   server_join {
-    retry_join = ["192.168.1.102", "192.168.1.104"]
+    retry_join = ["192.168.1.101", "192.168.1.102"]
   }
 }
 

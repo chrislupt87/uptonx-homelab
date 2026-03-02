@@ -33,42 +33,16 @@
 | **Role** | Primary workstation, Nomad client |
 | **Nomad** | Client, meta: node.type=workstation, node.gpu=amd-rx7600 |
 
-### msi
-
-| | |
-|---|---|
-| **IP** | 192.168.1.74 |
-| **OS** | Proxmox kernel (6.17.9-1-pve) |
-| **CPU** | Intel Core Ultra 7 155H |
-| **RAM** | 32 GB |
-| **GPU** | Intel Arc (Meteor Lake integrated) |
-| **SSH** | root@192.168.1.74 |
-| **Role** | Available — Docker installed, Nomad installed but inactive |
-
-### ai (NUC)
-
-| | |
-|---|---|
-| **IP** | 192.168.1.69 |
-| **OS** | Linux |
-| **CPU** | 13th Gen Intel Core i5-1340P |
-| **RAM** | 64 GB |
-| **GPU** | Intel Iris Xe (integrated) |
-| **SSH** | root@192.168.1.69 |
-| **Role** | AI pipeline host (Docker) |
-| **Services** | khoj, whisper, librechat, open-webui, litellm, qdrant, anythingllm (restarting), cadvisor, node-exporter |
-
-### aux
+### aux — Proxmox Hypervisor
 
 | | |
 |---|---|
 | **IP** | 192.168.1.18 |
-| **OS** | Linux |
+| **OS** | Proxmox VE (Debian 13 trixie, PVE kernel) |
 | **CPU** | AMD Ryzen 7 8845HS |
 | **RAM** | 64 GB |
 | **SSH** | root@192.168.1.18 |
-| **Role** | Frigate & video processing pipeline |
-| **Status** | Not yet set up — no Docker, no Nomad |
+| **Role** | Proxmox host — runs LXC (CT 104) |
 
 ### aux2 — Proxmox Hypervisor
 
@@ -81,6 +55,28 @@
 | **Disk** | 94 GB |
 | **SSH** | root@192.168.1.80 |
 | **Role** | Proxmox host — runs LXC (CT 103) |
+
+### ai (NUC) — Proxmox Hypervisor
+
+| | |
+|---|---|
+| **IP** | 192.168.1.69 |
+| **OS** | Proxmox VE (Debian 13 trixie, PVE kernel) |
+| **CPU** | 13th Gen Intel Core i5-1340P |
+| **RAM** | 64 GB |
+| **SSH** | root@192.168.1.69 |
+| **Role** | Proxmox host — runs LXC (CT 301) |
+
+### msi — Proxmox Hypervisor
+
+| | |
+|---|---|
+| **IP** | 192.168.1.74 |
+| **OS** | Proxmox VE (Debian 13 trixie, PVE kernel) |
+| **CPU** | Intel Core Ultra 7 155H |
+| **RAM** | 32 GB |
+| **SSH** | root@192.168.1.74 |
+| **Role** | Proxmox host — runs LXC (CT 105) |
 
 ### nas (UGreen)
 
@@ -115,6 +111,24 @@
 |-------|----------|----|------|--------|
 | 103 | nomad2 | 192.168.1.102 | Nomad server + client (privileged) | Running |
 
+### On aux (192.168.1.18)
+
+| CT ID | Hostname | IP | Role | Status |
+|-------|----------|----|------|--------|
+| 104 | nomad3 | 192.168.1.104 | Nomad server + client (privileged) | Running |
+
+### On ai (192.168.1.69)
+
+| CT ID | Hostname | IP | Role | Status |
+|-------|----------|----|------|--------|
+| 301 | nomad-ai | 192.168.1.103 | Nomad client (privileged) | Running |
+
+### On msi (192.168.1.74)
+
+| CT ID | Hostname | IP | Role | Status |
+|-------|----------|----|------|--------|
+| 105 | nomad-msi | 192.168.1.105 | Nomad client (privileged) | Running |
+
 ## Nomad Cluster
 
 - **Version**: 1.11.2
@@ -125,8 +139,11 @@
 
 | Node | IP | Role | Status |
 |------|----|------|--------|
-| nomad (CT 100) | 192.168.1.101 | Server + client | Ready, leader |
+| nomad (CT 100) | 192.168.1.101 | Server + client | Ready |
 | nomad2 (CT 103) | 192.168.1.102 | Server + client | Ready |
+| nomad3 (CT 104) | 192.168.1.104 | Server + client | Ready |
+| nomad-ai (CT 301) | 192.168.1.103 | Client | Ready |
+| nomad-msi (CT 105) | 192.168.1.105 | Client | Ready |
 | uptonx-workstation | 192.168.1.95 | Client | Ready |
 
 ## Services
@@ -147,19 +164,7 @@
 
 ### Standalone (Docker on bare metal)
 
-| Service | Host | Status |
-|---------|------|--------|
-| khoj | ai (192.168.1.69) | Up |
-| khoj-db | ai (192.168.1.69) | Up |
-| whisper | ai (192.168.1.69) | Up |
-| librechat | ai (192.168.1.69) | Up |
-| open-webui | ai (192.168.1.69) | Up (healthy) |
-| litellm | ai (192.168.1.69) | Up |
-| qdrant | ai (192.168.1.69) | Up |
-| anythingllm | ai (192.168.1.69) | Restarting (broken) |
-| librechat-mongo | ai (192.168.1.69) | Restarting (broken) |
-| cadvisor | ai (192.168.1.69) | Up (healthy) |
-| node-exporter | ai (192.168.1.69) | Up |
+_None — AI NUC services cleared, to be redeployed as Nomad jobs._
 
 ## Storage (NFS CSI)
 
