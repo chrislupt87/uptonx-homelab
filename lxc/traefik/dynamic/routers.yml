@@ -1,8 +1,16 @@
 http:
   routers:
-    nomad:
-      rule: "Host(`nomad.uptonx.com`)"
-      service: nomad
+    gitea:
+      rule: "Host(`gitea.uptonx.com`)"
+      service: gitea
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    portainer:
+      rule: "Host(`portainer.uptonx.com`)"
+      service: portainer
       entryPoints:
         - websecure
       tls:
@@ -24,19 +32,17 @@ http:
       tls:
         certResolver: cloudflare
 
-    consul:
-      rule: "Host(`consul.uptonx.com`)"
-      service: consul
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
-
   services:
-    nomad:
+    gitea:
       loadBalancer:
         servers:
-          - url: "http://192.168.1.101:4646"
+          - url: "http://192.168.1.20:3000"
+
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "https://192.168.1.21:9443"
+        serversTransport: insecureTransport
 
     technitium:
       loadBalancer:
@@ -48,7 +54,6 @@ http:
         servers:
           - url: "http://192.168.1.15:8080"
 
-    consul:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.1.101:8500"
+  serversTransports:
+    insecureTransport:
+      insecureSkipVerify: true
