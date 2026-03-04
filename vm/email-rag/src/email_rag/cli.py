@@ -81,6 +81,63 @@ def analyze():
     run_deep_analysis()
 
 
+@cli.command("backfill-metadata")
+def backfill_metadata():
+    """Re-parse raw_messages to populate metadata columns on existing emails."""
+    import email as email_mod
+    from email_rag.db.schema import SessionLocal, Email, RawMessage
+    from email_rag.ingest.metadata import extract_eml_metadata
+
+    db = SessionLocal()
+    try:
+        # Get all emails joined with their raw content
+        rows = (
+            db.query(Email, RawMessage.raw_content)
+            .join(RawMessage, Email.raw_id == RawMessage.id)
+            .all()
+        )
+        click.echo(f"Backfilling metadata for {len(rows)} emails...")
+
+        updated = 0
+        for em, raw_content in rows:
+            try:
+                msg = email_mod.message_from_string(raw_content)
+                meta = extract_eml_metadata(msg)
+
+                # Use COALESCE logic: don't overwrite IMAP-derived values with weaker ones
+                # Only set is_read if currently NULL (IMAP value is stronger)
+                if em.is_read is None and meta["is_read"] is not None:
+                    em.is_read = meta["is_read"]
+                # Only set is_flagged if currently default (False)
+                if not em.is_flagged and meta["is_flagged"]:
+                    em.is_flagged = meta["is_flagged"]
+                # Don't touch is_replied — only IMAP can set it
+
+                # Always overwrite these — derived from message content, not IMAP
+                em.has_attachments = meta["has_attachments"]
+                em.attachment_count = meta["attachment_count"]
+                em.is_bulk = meta["is_bulk"]
+                em.importance = meta["importance"]
+                em.mail_client = meta["mail_client"]
+
+                # Set gmail_labels from Takeout header if not already set from IMAP
+                if not em.gmail_labels and meta["gmail_labels"]:
+                    em.gmail_labels = meta["gmail_labels"]
+
+                updated += 1
+                if updated % 500 == 0:
+                    db.commit()
+                    click.echo(f"  ...{updated} processed")
+            except Exception as e:
+                click.echo(f"  Error on email {em.id}: {e}")
+                continue
+
+        db.commit()
+        click.echo(f"Backfill complete: {updated} emails updated")
+    finally:
+        db.close()
+
+
 @cli.command("stats")
 def stats():
     """Show database statistics."""

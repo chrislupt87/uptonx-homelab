@@ -48,6 +48,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    chat:
+      rule: "Host(`chat.uptonx.com`)"
+      service: chat
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   services:
     infisical:
       loadBalancer:
@@ -69,6 +77,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.51:5380"
+
+    chat:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.110:8080"
 
     email-rag:
       loadBalancer:

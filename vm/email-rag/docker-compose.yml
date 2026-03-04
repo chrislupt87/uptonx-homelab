@@ -39,3 +39,17 @@ services:
     command: python -m email_rag.cli ingest-gmail
     profiles:
       - ingest
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - secrets/email-rag.env
+    environment:
+      - OLLAMA_BASE_URL=http://192.168.1.95:11434
+      - WEBUI_AUTH=false
+      - PORT=8080
+    volumes:
+      - /opt/email-rag/open-webui-data:/app/backend/data

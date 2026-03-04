@@ -46,6 +46,17 @@ CREATE TABLE IF NOT EXISTS emails (
     subject_priority BOOLEAN NOT NULL DEFAULT FALSE,
     processed       BOOLEAN NOT NULL DEFAULT FALSE,
     processed_at    TIMESTAMPTZ,
+    is_read         BOOLEAN,
+    is_flagged      BOOLEAN NOT NULL DEFAULT FALSE,
+    is_replied      BOOLEAN NOT NULL DEFAULT FALSE,
+    gmail_labels    TEXT[] NOT NULL DEFAULT '{}',
+    gmail_thread_id TEXT,
+    gmail_message_id TEXT,
+    has_attachments BOOLEAN NOT NULL DEFAULT FALSE,
+    attachment_count INTEGER NOT NULL DEFAULT 0,
+    is_bulk         BOOLEAN NOT NULL DEFAULT FALSE,
+    importance      TEXT,
+    mail_client     TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -56,6 +67,12 @@ CREATE INDEX IF NOT EXISTS idx_emails_sent_at ON emails(sent_at);
 CREATE INDEX IF NOT EXISTS idx_emails_corpus ON emails(corpus);
 CREATE INDEX IF NOT EXISTS idx_emails_store ON emails(store);
 CREATE INDEX IF NOT EXISTS idx_emails_subject_priority ON emails(subject_priority) WHERE subject_priority = TRUE;
+CREATE INDEX IF NOT EXISTS idx_emails_is_read ON emails(is_read) WHERE is_read IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_emails_is_flagged ON emails(is_flagged) WHERE is_flagged = TRUE;
+CREATE INDEX IF NOT EXISTS idx_emails_gmail_thread_id ON emails(gmail_thread_id) WHERE gmail_thread_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_emails_is_bulk ON emails(is_bulk) WHERE is_bulk = TRUE;
+CREATE INDEX IF NOT EXISTS idx_emails_has_attachments ON emails(has_attachments) WHERE has_attachments = TRUE;
+CREATE INDEX IF NOT EXISTS idx_emails_gmail_labels ON emails USING GIN(gmail_labels);
 
 CREATE TABLE IF NOT EXISTS snippets (
     id              BIGSERIAL PRIMARY KEY,
@@ -178,6 +195,36 @@ CREATE TABLE IF NOT EXISTS snapshots (
     stats           JSONB,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ============================================================
+-- USER FACTS & SUGGESTED QUESTIONS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS user_facts (
+    id              BIGSERIAL PRIMARY KEY,
+    category        TEXT NOT NULL,
+    subject         TEXT NOT NULL,
+    content         TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_facts_category ON user_facts(category);
+
+CREATE TABLE IF NOT EXISTS suggested_questions (
+    id              BIGSERIAL PRIMARY KEY,
+    question_text   TEXT NOT NULL,
+    context         TEXT,
+    source_type     TEXT NOT NULL,
+    source_email_ids JSONB,
+    status          TEXT NOT NULL DEFAULT 'pending',
+    answer_text     TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    answered_at     TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_suggested_questions_status ON suggested_questions(status);
+CREATE INDEX IF NOT EXISTS idx_suggested_questions_source_type ON suggested_questions(source_type);
 
 -- ============================================================
 -- VECTOR INDEXES

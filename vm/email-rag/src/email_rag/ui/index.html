@@ -2,108 +2,173 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Email RAG</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #0a0a0f;
             color: #e0e0e0;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         .header {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 20px 30px;
+            padding: 12px 20px;
             border-bottom: 1px solid #2a2a4a;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .header h1 { font-size: 24px; color: #7c83ff; }
-        .header .status { font-size: 13px; color: #888; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
+        .header h1 { font-size: 20px; color: #7c83ff; }
+        .header .status-bar { font-size: 12px; color: #888; display: flex; gap: 16px; align-items: center; }
+        .header .status-bar .stat { color: #7c83ff; font-weight: 600; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
             background: #12121f;
-            border: 1px solid #2a2a4a;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
+            border-bottom: 1px solid #2a2a4a;
+            overflow-x: auto;
         }
-        .stat-card .value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #7c83ff;
-        }
-        .stat-card .label {
-            font-size: 12px;
+        .tab {
+            padding: 14px 24px;
+            font-size: 14px;
+            font-weight: 600;
             color: #888;
-            text-transform: uppercase;
-            margin-top: 4px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
+        .tab:active { background: #1a1a2e; }
+        .tab.active { color: #7c83ff; border-bottom-color: #7c83ff; }
+        .tab .badge {
+            background: #7c83ff;
+            color: #fff;
+            font-size: 11px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .container { padding: 16px; max-width: 1400px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         .panel {
             background: #12121f;
             border: 1px solid #2a2a4a;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
         .panel h2 {
-            font-size: 16px;
+            font-size: 15px;
             color: #7c83ff;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             border-bottom: 1px solid #2a2a4a;
             padding-bottom: 8px;
         }
-        .query-box {
+
+        /* Query section */
+        .query-row {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
-        .query-box input {
+        .query-row input {
             flex: 1;
             background: #1a1a2e;
             border: 1px solid #2a2a4a;
             color: #e0e0e0;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 16px;
         }
-        .query-box input:focus { outline: none; border-color: #7c83ff; }
-        .query-box button {
+        .query-row input:focus { outline: none; border-color: #7c83ff; }
+        .query-row select {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            color: #e0e0e0;
+            padding: 14px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            min-width: 140px;
+        }
+        .query-row button, .touch-btn {
             background: #7c83ff;
             color: #fff;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 14px 24px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 15px;
+            min-height: 48px;
+            min-width: 48px;
         }
-        .query-box button:hover { background: #6a71e0; }
+        .touch-btn:active, .query-row button:active { background: #5a61cc; transform: scale(0.97); }
         .answer-box {
             background: #1a1a2e;
             border: 1px solid #2a2a4a;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 16px;
-            min-height: 100px;
+            min-height: 80px;
             white-space: pre-wrap;
             font-size: 14px;
             line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
         }
+
+        /* On-screen keyboard */
+        .keyboard {
+            display: none;
+            background: #0e0e1a;
+            border-top: 1px solid #2a2a4a;
+            padding: 8px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 500;
+        }
+        .keyboard.active { display: block; }
+        .kb-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 4px; }
+        .kb-key {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            color: #e0e0e0;
+            padding: 12px 0;
+            min-width: 36px;
+            min-height: 44px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            max-width: 50px;
+        }
+        .kb-key.wide { flex: 1.5; max-width: 80px; font-size: 13px; }
+        .kb-key.space { flex: 6; max-width: 300px; }
+        .kb-key:active { background: #7c83ff; color: #fff; }
+
+        /* Findings */
         .finding {
             border-left: 3px solid #7c83ff;
-            padding: 12px 16px;
-            margin-bottom: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
             background: #1a1a2e;
-            border-radius: 0 6px 6px 0;
+            border-radius: 0 8px 8px 0;
         }
-        .finding .title { font-weight: 600; margin-bottom: 4px; }
+        .finding .title { font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+        .finding .summary { font-size: 13px; margin-bottom: 4px; }
         .finding .meta { font-size: 12px; color: #888; }
         .tag {
             display: inline-block;
@@ -111,160 +176,679 @@
             border-radius: 4px;
             font-size: 11px;
             font-weight: 600;
-            margin-right: 6px;
+            margin-right: 4px;
         }
         .tag.grounded { background: #1a4a1a; color: #4caf50; }
         .tag.inferred { background: #4a4a1a; color: #ff9800; }
         .tag.speculative { background: #4a1a1a; color: #f44336; }
+
+        /* Emails */
         .email-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #1a1a2e;
             font-size: 13px;
+            align-items: center;
         }
-        .email-row .from { color: #7c83ff; min-width: 200px; }
-        .email-row .subject { flex: 1; margin: 0 12px; }
-        .email-row .date { color: #888; min-width: 120px; text-align: right; }
+        .email-row .from { color: #7c83ff; min-width: 160px; font-weight: 500; }
+        .email-row .subject { flex: 1; margin: 0 10px; }
+        .email-row .date { color: #888; min-width: 90px; text-align: right; font-size: 12px; }
         .priority { color: #ff9800 !important; }
-        #clock { font-size: 14px; color: #7c83ff; }
+
+        /* Questions */
+        .question-item {
+            padding: 14px;
+            margin-bottom: 10px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            border-left: 3px solid #7c83ff;
+        }
+        .question-item .q-text { margin-bottom: 6px; font-size: 14px; }
+        .question-item .q-context { font-size: 12px; color: #888; margin-bottom: 8px; }
+        .question-item .q-actions { display: flex; gap: 8px; }
+        .q-actions button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            min-height: 44px;
+        }
+        .btn-answer { background: #1a4a2e; color: #66bb6a; }
+        .btn-answer:active { background: #2a6a4e; }
+        .btn-dismiss { background: #2a2a4a; color: #888; }
+        .btn-dismiss:active { background: #3a3a5a; }
+        .source-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        .source-tag.entity { background: #2a1a4a; color: #b388ff; }
+        .source-tag.gap { background: #4a3a1a; color: #ffb74d; }
+        .source-tag.analysis { background: #1a2a4a; color: #64b5f6; }
+
+        /* Facts */
+        .fact-form { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .fact-form select, .fact-form input {
+            background: #1a1a2e; border: 1px solid #2a2a4a; color: #e0e0e0;
+            padding: 12px 10px; border-radius: 8px; font-size: 14px; min-height: 44px;
+        }
+        .fact-form input { flex: 1; min-width: 120px; }
+        .fact-form button {
+            background: #7c83ff; color: #fff; border: none; padding: 12px 20px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;
+            min-height: 44px;
+        }
+        .fact-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px; margin-bottom: 6px;
+            background: #1a1a2e; border-radius: 8px; font-size: 13px;
+        }
+        .fact-item .fact-subject { color: #7c83ff; font-weight: 600; margin-right: 8px; }
+        .fact-item .fact-content { flex: 1; }
+        .fact-item .fact-delete {
+            background: #4a1a1a; border: none; color: #f44336; cursor: pointer;
+            font-size: 18px; padding: 6px 12px; border-radius: 6px; min-height: 36px;
+        }
+        .fact-item .fact-delete:active { background: #6a2a2a; }
+        .category-tag {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: 600; margin-right: 6px;
+            background: #2a2a4a; color: #aaa;
+        }
+
+        /* Stats compact */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: #12121f;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .stat-card .value { font-size: 24px; font-weight: 700; color: #7c83ff; }
+        .stat-card .label { font-size: 11px; color: #888; text-transform: uppercase; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #12121f; border: 1px solid #2a2a4a; border-radius: 12px;
+            padding: 20px; width: 520px; max-width: 95%;
+        }
+        .modal h3 { color: #7c83ff; margin-bottom: 12px; font-size: 16px; }
+        .modal .q-display {
+            background: #1a1a2e; padding: 12px; border-radius: 8px;
+            margin-bottom: 12px; font-size: 14px;
+        }
+        .modal .q-display .ctx { font-size: 12px; color: #888; margin-top: 6px; }
+        .modal textarea {
+            width: 100%; background: #1a1a2e; border: 1px solid #2a2a4a; color: #e0e0e0;
+            padding: 12px; border-radius: 8px; font-size: 14px; min-height: 80px;
+            resize: vertical; font-family: inherit;
+        }
+        .modal textarea:focus { outline: none; border-color: #7c83ff; }
+        .modal .fact-options {
+            display: flex; gap: 10px; align-items: center; margin: 10px 0;
+            flex-wrap: wrap; font-size: 13px;
+        }
+        .modal .fact-options label { cursor: pointer; color: #aaa; }
+        .modal .fact-options input[type="checkbox"] { accent-color: #7c83ff; width: 20px; height: 20px; }
+        .modal .fact-options select, .modal .fact-options input[type="text"] {
+            background: #1a1a2e; border: 1px solid #2a2a4a; color: #e0e0e0;
+            padding: 8px 10px; border-radius: 6px; font-size: 13px; min-height: 40px;
+        }
+        .modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+        .modal .modal-actions button {
+            padding: 12px 24px; border-radius: 8px; border: none;
+            cursor: pointer; font-weight: 600; font-size: 14px; min-height: 48px;
+        }
+        .modal .btn-submit { background: #7c83ff; color: #fff; }
+        .modal .btn-submit:active { background: #5a61cc; }
+        .modal .btn-cancel { background: #2a2a4a; color: #aaa; }
+        .modal .btn-cancel:active { background: #3a3a5a; }
+
+        /* Two-column layout for wider screens */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* Pad bottom when keyboard is open */
+        body.kb-open { padding-bottom: 260px; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Email RAG Intelligence</h1>
-        <div>
+        <h1>Email RAG</h1>
+        <div class="status-bar">
             <span id="clock"></span>
-            <span class="status" id="ollama-status">Ollama: checking...</span>
+            <span id="stat-emails"></span>
+            <span id="stat-findings"></span>
+            <span id="ollama-status">Ollama: ...</span>
         </div>
     </div>
 
-    <div class="container">
-        <div class="grid" id="stats-grid"></div>
+    <div class="tabs">
+        <div class="tab active" data-tab="query">Ask</div>
+        <div class="tab" data-tab="questions">Questions <span class="badge" id="q-badge" style="display:none">0</span></div>
+        <div class="tab" data-tab="findings">Findings</div>
+        <div class="tab" data-tab="facts">Knowledge</div>
+        <div class="tab" data-tab="emails">Emails</div>
+        <div class="tab" data-tab="overview">Stats</div>
+    </div>
 
-        <div class="panel">
-            <h2>Ask a Question</h2>
-            <div class="query-box">
-                <input type="text" id="query-input" placeholder="Ask about emails, people, events...">
-                <button onclick="askQuestion()">Ask Claude</button>
+    <div class="container">
+        <!-- Query tab -->
+        <div class="tab-content active" id="tab-query">
+            <div class="panel">
+                <div class="query-row">
+                    <select id="model-select"><option value="claude">Claude Sonnet 4.6</option></select>
+                    <input type="text" id="query-input" placeholder="Ask about emails, people, events..."
+                           onfocus="showKeyboard('query-input')" readonly>
+                    <button class="touch-btn" onclick="askQuestion()">Ask</button>
+                </div>
+                <div class="answer-box" id="answer-box">Tap the input and type a question.</div>
             </div>
-            <div class="answer-box" id="answer-box">Ask a question to get started.</div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- Questions tab -->
+        <div class="tab-content" id="tab-questions">
             <div class="panel">
-                <h2>Recent Findings</h2>
+                <h2>Pending Questions</h2>
+                <div id="questions-list"></div>
+            </div>
+        </div>
+
+        <!-- Findings tab -->
+        <div class="tab-content" id="tab-findings">
+            <div class="panel">
+                <h2>Key Findings</h2>
                 <div id="findings-list"></div>
             </div>
+        </div>
 
+        <!-- Knowledge tab -->
+        <div class="tab-content" id="tab-facts">
             <div class="panel">
-                <h2>Recent Emails</h2>
+                <h2>Background Knowledge</h2>
+                <div class="fact-form">
+                    <select id="fact-category">
+                        <option value="person">Person</option>
+                        <option value="relationship">Relationship</option>
+                        <option value="place">Place</option>
+                        <option value="event">Event</option>
+                        <option value="context">Context</option>
+                    </select>
+                    <input type="text" id="fact-subject" placeholder="Subject"
+                           onfocus="showKeyboard('fact-subject')" readonly>
+                    <input type="text" id="fact-content" placeholder="Description"
+                           onfocus="showKeyboard('fact-content')" readonly>
+                    <button onclick="addFact()">Add</button>
+                </div>
+                <div id="facts-list"></div>
+            </div>
+        </div>
+
+        <!-- Emails tab -->
+        <div class="tab-content" id="tab-emails">
+            <div class="panel">
+                <h2>Priority Emails</h2>
                 <div id="emails-list"></div>
             </div>
+        </div>
+
+        <!-- Overview/Stats tab -->
+        <div class="tab-content" id="tab-overview">
+            <div class="stats-row" id="stats-grid"></div>
+        </div>
+    </div>
+
+    <!-- Answer modal -->
+    <div class="modal-overlay" id="answer-modal">
+        <div class="modal">
+            <h3>Answer Question</h3>
+            <div class="q-display">
+                <div id="modal-question"></div>
+                <div class="ctx" id="modal-context"></div>
+            </div>
+            <textarea id="modal-answer" placeholder="Your answer..."
+                      onfocus="showKeyboard('modal-answer')" readonly></textarea>
+            <div class="fact-options">
+                <label><input type="checkbox" id="modal-save-fact"> Save as fact</label>
+                <select id="modal-fact-category">
+                    <option value="person">Person</option>
+                    <option value="relationship">Relationship</option>
+                    <option value="place">Place</option>
+                    <option value="event">Event</option>
+                    <option value="context">Context</option>
+                </select>
+                <input type="text" id="modal-fact-subject" placeholder="Subject"
+                       onfocus="showKeyboard('modal-fact-subject')" readonly>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-submit" onclick="submitAnswer()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- On-screen keyboard -->
+    <div class="keyboard" id="keyboard">
+        <div class="kb-row">
+            <div class="kb-key" data-key="1">1</div>
+            <div class="kb-key" data-key="2">2</div>
+            <div class="kb-key" data-key="3">3</div>
+            <div class="kb-key" data-key="4">4</div>
+            <div class="kb-key" data-key="5">5</div>
+            <div class="kb-key" data-key="6">6</div>
+            <div class="kb-key" data-key="7">7</div>
+            <div class="kb-key" data-key="8">8</div>
+            <div class="kb-key" data-key="9">9</div>
+            <div class="kb-key" data-key="0">0</div>
+        </div>
+        <div class="kb-row">
+            <div class="kb-key" data-key="q">q</div>
+            <div class="kb-key" data-key="w">w</div>
+            <div class="kb-key" data-key="e">e</div>
+            <div class="kb-key" data-key="r">r</div>
+            <div class="kb-key" data-key="t">t</div>
+            <div class="kb-key" data-key="y">y</div>
+            <div class="kb-key" data-key="u">u</div>
+            <div class="kb-key" data-key="i">i</div>
+            <div class="kb-key" data-key="o">o</div>
+            <div class="kb-key" data-key="p">p</div>
+        </div>
+        <div class="kb-row">
+            <div class="kb-key" data-key="a">a</div>
+            <div class="kb-key" data-key="s">s</div>
+            <div class="kb-key" data-key="d">d</div>
+            <div class="kb-key" data-key="f">f</div>
+            <div class="kb-key" data-key="g">g</div>
+            <div class="kb-key" data-key="h">h</div>
+            <div class="kb-key" data-key="j">j</div>
+            <div class="kb-key" data-key="k">k</div>
+            <div class="kb-key" data-key="l">l</div>
+        </div>
+        <div class="kb-row">
+            <div class="kb-key wide" data-action="shift">Shift</div>
+            <div class="kb-key" data-key="z">z</div>
+            <div class="kb-key" data-key="x">x</div>
+            <div class="kb-key" data-key="c">c</div>
+            <div class="kb-key" data-key="v">v</div>
+            <div class="kb-key" data-key="b">b</div>
+            <div class="kb-key" data-key="n">n</div>
+            <div class="kb-key" data-key="m">m</div>
+            <div class="kb-key wide" data-action="backspace">Del</div>
+        </div>
+        <div class="kb-row">
+            <div class="kb-key wide" data-action="close">Done</div>
+            <div class="kb-key" data-key=",">,</div>
+            <div class="kb-key space" data-key=" ">Space</div>
+            <div class="kb-key" data-key=".">.</div>
+            <div class="kb-key" data-key="?">?</div>
+            <div class="kb-key" data-key="'">&#39;</div>
         </div>
     </div>
 
     <script>
         const API = '';
+        let kbTarget = null;
+        let kbShift = false;
 
+        // --- Tabs ---
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+                hideKeyboard();
+            });
+        });
+
+        // --- Clock ---
         function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleString();
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         }
         setInterval(updateClock, 1000);
         updateClock();
 
+        // --- On-screen keyboard ---
+        function showKeyboard(inputId) {
+            kbTarget = document.getElementById(inputId);
+            document.getElementById('keyboard').classList.add('active');
+            document.body.classList.add('kb-open');
+            kbTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function hideKeyboard() {
+            document.getElementById('keyboard').classList.remove('active');
+            document.body.classList.remove('kb-open');
+            kbTarget = null;
+            kbShift = false;
+            updateShiftDisplay();
+        }
+
+        function updateShiftDisplay() {
+            document.querySelectorAll('.kb-key[data-key]').forEach(k => {
+                const ch = k.dataset.key;
+                if (ch.length === 1 && ch.match(/[a-z]/)) {
+                    k.textContent = kbShift ? ch.toUpperCase() : ch;
+                }
+            });
+        }
+
+        document.querySelectorAll('.kb-key').forEach(key => {
+            key.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!kbTarget) return;
+                const action = key.dataset.action;
+                if (action === 'close') {
+                    hideKeyboard();
+                    return;
+                }
+                if (action === 'shift') {
+                    kbShift = !kbShift;
+                    updateShiftDisplay();
+                    return;
+                }
+                if (action === 'backspace') {
+                    if (kbTarget.tagName === 'TEXTAREA') {
+                        const pos = kbTarget.value.length;
+                        kbTarget.value = kbTarget.value.slice(0, -1);
+                    } else {
+                        kbTarget.value = kbTarget.value.slice(0, -1);
+                    }
+                    return;
+                }
+                let ch = key.dataset.key;
+                if (ch && kbShift && ch.length === 1) {
+                    ch = ch.toUpperCase();
+                    kbShift = false;
+                    updateShiftDisplay();
+                }
+                if (ch !== undefined) {
+                    kbTarget.value += ch;
+                }
+            });
+        });
+
+        // --- Stats ---
         async function loadStats() {
             try {
                 const r = await fetch(`${API}/api/stats`);
-                const data = await r.json();
+                const d = await r.json();
+                document.getElementById('stat-emails').innerHTML = `<span class="stat">${d.emails}</span> emails`;
+                document.getElementById('stat-findings').innerHTML = `<span class="stat">${d.findings}</span> findings`;
+                document.getElementById('ollama-status').textContent = `Ollama: ${d.ollama}`;
+
+                // Update questions badge
+                const badge = document.getElementById('q-badge');
+                if (d.pending_questions > 0) {
+                    badge.textContent = d.pending_questions;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                // Full stats grid
                 const grid = document.getElementById('stats-grid');
                 const stats = [
-                    { label: 'Raw Messages', value: data.raw_messages },
-                    { label: 'Emails', value: data.emails },
-                    { label: 'Snippets', value: data.snippets },
-                    { label: 'Findings', value: data.findings },
-                    { label: 'Claims', value: data.claims },
-                    { label: 'Processed', value: data.processed },
-                    { label: 'Priority', value: data.subject_priority },
-                    { label: 'Ollama', value: data.ollama },
+                    { label: 'Raw Messages', value: d.raw_messages },
+                    { label: 'Emails', value: d.emails },
+                    { label: 'Snippets', value: d.snippets },
+                    { label: 'Findings', value: d.findings },
+                    { label: 'Claims', value: d.claims },
+                    { label: 'Processed', value: d.processed },
+                    { label: 'Priority', value: d.subject_priority },
+                    { label: 'Facts', value: d.facts },
+                    { label: 'Questions', value: d.pending_questions },
+                    { label: 'Flagged', value: d.flagged },
+                    { label: 'Unread', value: d.unread },
+                    { label: 'Ollama', value: d.ollama },
                 ];
                 grid.innerHTML = stats.map(s =>
                     `<div class="stat-card"><div class="value">${s.value}</div><div class="label">${s.label}</div></div>`
                 ).join('');
-                document.getElementById('ollama-status').textContent = `Ollama: ${data.ollama}`;
             } catch (e) {
                 console.error('Stats error:', e);
             }
         }
 
+        // --- Findings ---
         async function loadFindings() {
             try {
-                const r = await fetch(`${API}/api/findings?limit=10`);
+                const r = await fetch(`${API}/api/findings?limit=20`);
                 const data = await r.json();
-                const list = document.getElementById('findings-list');
-                list.innerHTML = data.map(f =>
+                document.getElementById('findings-list').innerHTML = data.map(f =>
                     `<div class="finding">
-                        <div class="title">${f.title}</div>
-                        <div>${f.summary}</div>
+                        <div class="title">${esc(f.title)}</div>
+                        <div class="summary">${esc(f.summary)}</div>
                         <div class="meta">
                             <span class="tag ${f.grounding}">${f.grounding}</span>
-                            ${f.type} | confidence: ${(f.confidence * 100).toFixed(0)}%
+                            ${esc(f.type)} | ${(f.confidence * 100).toFixed(0)}%
                             | ${new Date(f.created_at).toLocaleDateString()}
                         </div>
                     </div>`
-                ).join('') || '<div style="color:#888">No findings yet. Run analysis first.</div>';
+                ).join('') || '<div style="color:#888;padding:12px">No findings yet. Run analysis first.</div>';
             } catch (e) {
                 console.error('Findings error:', e);
             }
         }
 
+        // --- Emails ---
         async function loadEmails() {
             try {
-                const r = await fetch(`${API}/api/emails?limit=15&priority_only=true`);
+                const r = await fetch(`${API}/api/emails?limit=25&priority_only=true`);
                 const data = await r.json();
-                const list = document.getElementById('emails-list');
-                list.innerHTML = data.map(e =>
+                document.getElementById('emails-list').innerHTML = data.map(e =>
                     `<div class="email-row">
-                        <span class="from ${e.priority ? 'priority' : ''}">${e.from}</span>
-                        <span class="subject">${e.subject || '(no subject)'}</span>
+                        <span class="from ${e.priority ? 'priority' : ''}">${esc(e.from)}</span>
+                        <span class="subject">${esc(e.subject || '(no subject)')}</span>
                         <span class="date">${e.date ? new Date(e.date).toLocaleDateString() : ''}</span>
                     </div>`
-                ).join('') || '<div style="color:#888">No emails yet. Run ingest first.</div>';
+                ).join('') || '<div style="color:#888;padding:12px">No emails yet.</div>';
             } catch (e) {
                 console.error('Emails error:', e);
             }
         }
 
+        // --- Models ---
+        async function loadModels() {
+            try {
+                const r = await fetch(`${API}/api/models`);
+                const models = await r.json();
+                document.getElementById('model-select').innerHTML = models.map(m =>
+                    `<option value="${m.id}">${m.name} [${m.type}]</option>`
+                ).join('');
+            } catch (e) {
+                console.error('Models error:', e);
+            }
+        }
+
+        // --- Query ---
         async function askQuestion() {
             const input = document.getElementById('query-input');
             const box = document.getElementById('answer-box');
+            const model = document.getElementById('model-select').value;
             const question = input.value.trim();
             if (!question) return;
+            hideKeyboard();
 
-            box.textContent = 'Thinking...';
+            box.textContent = `Thinking (${model})...`;
             try {
                 const r = await fetch(`${API}/api/query`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question }),
+                    body: JSON.stringify({ question, model }),
                 });
                 const data = await r.json();
-                box.textContent = data.answer || data.error || 'No response';
+                const badge = data.model ? `\n\n--- ${data.model} ---` : '';
+                box.textContent = (data.answer || data.error || 'No response') + badge;
             } catch (e) {
                 box.textContent = `Error: ${e.message}`;
             }
         }
 
-        document.getElementById('query-input').addEventListener('keypress', e => {
-            if (e.key === 'Enter') askQuestion();
+        // --- Facts ---
+        async function loadFacts() {
+            try {
+                const r = await fetch(`${API}/api/facts`);
+                const data = await r.json();
+                document.getElementById('facts-list').innerHTML = data.map(f =>
+                    `<div class="fact-item">
+                        <span class="fact-subject">${esc(f.subject)}</span>
+                        <span class="category-tag">${esc(f.category)}</span>
+                        <span class="fact-content">${esc(f.content)}</span>
+                        <button class="fact-delete" onclick="deleteFact(${f.id})">&times;</button>
+                    </div>`
+                ).join('') || '<div style="color:#888;padding:12px">No background knowledge yet.</div>';
+            } catch (e) {
+                console.error('Facts error:', e);
+            }
+        }
+
+        async function addFact() {
+            const category = document.getElementById('fact-category').value;
+            const subject = document.getElementById('fact-subject').value.trim();
+            const content = document.getElementById('fact-content').value.trim();
+            if (!subject || !content) return;
+            hideKeyboard();
+            try {
+                await fetch(`${API}/api/facts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, subject, content }),
+                });
+                document.getElementById('fact-subject').value = '';
+                document.getElementById('fact-content').value = '';
+                loadFacts();
+                loadStats();
+            } catch (e) {
+                console.error('Add fact error:', e);
+            }
+        }
+
+        async function deleteFact(id) {
+            try {
+                await fetch(`${API}/api/facts/${id}`, { method: 'DELETE' });
+                loadFacts();
+                loadStats();
+            } catch (e) {
+                console.error('Delete fact error:', e);
+            }
+        }
+
+        // --- Questions ---
+        let currentQuestionId = null;
+
+        async function loadQuestions() {
+            try {
+                const r = await fetch(`${API}/api/questions?status=pending&limit=20`);
+                const data = await r.json();
+                document.getElementById('questions-list').innerHTML = data.map(q =>
+                    `<div class="question-item">
+                        <div class="q-text">
+                            <span class="source-tag ${q.source_type}">${q.source_type}</span>
+                            ${esc(q.question_text)}
+                        </div>
+                        ${q.context ? `<div class="q-context">${esc(q.context)}</div>` : ''}
+                        <div class="q-actions">
+                            <button class="btn-answer" onclick='openAnswer(${q.id}, ${JSON.stringify(q.question_text)}, ${JSON.stringify(q.context || "")})'>Answer</button>
+                            <button class="btn-dismiss" onclick="dismissQuestion(${q.id})">Dismiss</button>
+                        </div>
+                    </div>`
+                ).join('') || '<div style="color:#888;padding:12px">No pending questions. Run analysis to generate them.</div>';
+            } catch (e) {
+                console.error('Questions error:', e);
+            }
+        }
+
+        function openAnswer(id, question, context) {
+            currentQuestionId = id;
+            document.getElementById('modal-question').textContent = question;
+            document.getElementById('modal-context').textContent = context;
+            document.getElementById('modal-answer').value = '';
+            document.getElementById('modal-save-fact').checked = false;
+            document.getElementById('modal-fact-subject').value = '';
+            document.getElementById('answer-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('answer-modal').classList.remove('active');
+            currentQuestionId = null;
+            hideKeyboard();
+        }
+
+        async function submitAnswer() {
+            if (!currentQuestionId) return;
+            const answer = document.getElementById('modal-answer').value.trim();
+            if (!answer) return;
+            hideKeyboard();
+            const saveAsFact = document.getElementById('modal-save-fact').checked;
+            const body = { answer };
+            if (saveAsFact) {
+                body.save_as_fact = true;
+                body.category = document.getElementById('modal-fact-category').value;
+                body.subject = document.getElementById('modal-fact-subject').value.trim() || 'Unknown';
+            }
+            try {
+                await fetch(`${API}/api/questions/${currentQuestionId}/answer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                closeModal();
+                loadQuestions();
+                loadFacts();
+                loadStats();
+            } catch (e) {
+                console.error('Answer error:', e);
+            }
+        }
+
+        async function dismissQuestion(id) {
+            try {
+                await fetch(`${API}/api/questions/${id}/dismiss`, { method: 'POST' });
+                loadQuestions();
+                loadStats();
+            } catch (e) {
+                console.error('Dismiss error:', e);
+            }
+        }
+
+        function esc(s) {
+            if (!s) return '';
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // Close modal on overlay click
+        document.getElementById('answer-modal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
         });
 
         // Initial load and auto-refresh
+        loadModels();
         loadStats();
         loadFindings();
         loadEmails();
-        setInterval(() => { loadStats(); loadFindings(); loadEmails(); }, 30000);
+        loadFacts();
+        loadQuestions();
+        setInterval(() => { loadStats(); loadFindings(); loadEmails(); loadFacts(); loadQuestions(); }, 30000);
     </script>
 </body>
 </html>

@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from email_rag.db.schema import SessionLocal, RawMessage, Email
 from email_rag.ingest.gmail import classify_email, extract_body, parse_addrs
+from email_rag.ingest.metadata import extract_eml_metadata
 
 NFS_BASE = os.environ.get("NFS_BASE", "/mnt/nfs/volumes/email-rag")
 ARCHIVE_DIR = os.path.join(NFS_BASE, "archive")
@@ -45,8 +46,10 @@ def import_eml(path: str = None):
                 raw_content = eml_path.read_text(encoding="utf-8", errors="replace")
                 content_hash = sha256_of(raw_content)
 
-                # Resume-safe: skip if already imported
-                if db.query(RawMessage).filter_by(id=content_hash).first():
+                # Resume-safe: skip if already imported (no_autoflush for FK safety)
+                with db.no_autoflush:
+                    existing = db.query(RawMessage).filter_by(id=content_hash).first()
+                if existing:
                     skip_count += 1
                     continue
 
@@ -62,6 +65,9 @@ def import_eml(path: str = None):
                     sent_at = parsedate_to_datetime(msg.get("Date", ""))
                 except Exception:
                     pass
+
+                # Extract metadata from message headers
+                meta = extract_eml_metadata(msg)
 
                 raw_msg = RawMessage(
                     id=content_hash,
@@ -89,6 +95,19 @@ def import_eml(path: str = None):
                     corpus=corpus,
                     store="archive",
                     subject_priority=subject_priority,
+                    # Metadata from headers
+                    is_read=meta["is_read"],
+                    is_flagged=meta["is_flagged"],
+                    has_attachments=meta["has_attachments"],
+                    attachment_count=meta["attachment_count"],
+                    is_bulk=meta["is_bulk"],
+                    importance=meta["importance"],
+                    mail_client=meta["mail_client"],
+                    gmail_labels=meta["gmail_labels"],
+                    # Not available from EML files
+                    is_replied=False,
+                    gmail_thread_id=None,
+                    gmail_message_id=None,
                 )
                 db.add(email_record)
                 new_count += 1

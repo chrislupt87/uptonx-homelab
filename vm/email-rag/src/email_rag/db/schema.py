@@ -58,6 +58,17 @@ class Email(Base):
     subject_priority = Column(Boolean, default=False)
     processed = Column(Boolean, default=False)
     processed_at = Column(DateTime(timezone=True))
+    is_read = Column(Boolean)
+    is_flagged = Column(Boolean, default=False)
+    is_replied = Column(Boolean, default=False)
+    gmail_labels = Column(ARRAY(Text), default=[])
+    gmail_thread_id = Column(Text)
+    gmail_message_id = Column(Text)
+    has_attachments = Column(Boolean, default=False)
+    attachment_count = Column(Integer, default=0)
+    is_bulk = Column(Boolean, default=False)
+    importance = Column(Text)
+    mail_client = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -170,3 +181,28 @@ class Snapshot(Base):
     findings_ids = Column(ARRAY(BigInteger), default=[])
     stats = Column(JSONB)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserFact(Base):
+    __tablename__ = "user_facts"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    category = Column(Text, nullable=False)
+    subject = Column(Text, nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class SuggestedQuestion(Base):
+    __tablename__ = "suggested_questions"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    question_text = Column(Text, nullable=False)
+    context = Column(Text)
+    source_type = Column(Text, nullable=False)
+    source_email_ids = Column(JSONB)
+    status = Column(Text, nullable=False, default="pending")
+    answer_text = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    answered_at = Column(DateTime(timezone=True))

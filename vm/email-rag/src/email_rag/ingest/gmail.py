@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from email_rag.db.schema import SessionLocal, RawMessage, Email
+from email_rag.ingest.metadata import extract_eml_metadata, parse_imap_envelope
 
 MY_GMAIL = os.environ.get("MY_GMAIL", "")
 MY_ICLOUD = os.environ.get("MY_ICLOUD", "")
@@ -74,7 +75,7 @@ def ingest_gmail():
         return
 
     imap = connect_gmail()
-    imap.select("[Gmail]/All Mail", readonly=True)
+    imap.select('"[Gmail]/All Mail"', readonly=True)
 
     since_date = (datetime.now() - timedelta(days=180)).strftime("%d-%b-%Y")
     _, msg_ids = imap.search(None, f"SINCE {since_date}")
@@ -87,14 +88,21 @@ def ingest_gmail():
 
     try:
         for msg_id in tqdm(msg_id_list, desc="Gmail ingest"):
-            _, data = imap.fetch(msg_id, "(RFC822)")
+            _, data = imap.fetch(msg_id, "(RFC822 FLAGS X-GM-LABELS X-GM-THRID X-GM-MSGID)")
+
+            # data[0] is a tuple: (envelope_line, rfc822_bytes)
+            envelope_line = data[0][0] if data[0][0] else b""
             raw_bytes = data[0][1]
             raw_content = raw_bytes.decode("utf-8", errors="replace")
             content_hash = sha256_of(raw_content)
 
-            # Dedup by SHA-256
-            if db.query(RawMessage).filter_by(id=content_hash).first():
-                continue
+            # Dedup by SHA-256 (no_autoflush to avoid FK ordering issues)
+            with db.no_autoflush:
+                if db.query(RawMessage).filter_by(id=content_hash).first():
+                    continue
+
+            # Parse IMAP envelope for flags and Gmail extensions
+            imap_meta = parse_imap_envelope(envelope_line)
 
             msg = email.message_from_bytes(raw_bytes)
             from_addr = parseaddr(msg.get("From", ""))[1]
@@ -113,6 +121,9 @@ def ingest_gmail():
             except Exception:
                 pass
 
+            # Extract message-level metadata (attachments, bulk, importance, etc.)
+            msg_meta = extract_eml_metadata(msg)
+
             raw_msg = RawMessage(
                 id=content_hash,
                 source="gmail",
@@ -123,6 +134,7 @@ def ingest_gmail():
                 subject_priority=subject_priority,
             )
             db.add(raw_msg)
+            db.flush()  # ensure raw_message exists before email FK
 
             body_text = extract_body(msg)
             email_record = Email(
@@ -138,11 +150,25 @@ def ingest_gmail():
                 corpus=corpus,
                 store="rolling",
                 subject_priority=subject_priority,
+                # IMAP flags
+                is_read=imap_meta["is_read"],
+                is_flagged=imap_meta["is_flagged"],
+                is_replied=imap_meta["is_replied"],
+                # Gmail extensions
+                gmail_labels=imap_meta["gmail_labels"],
+                gmail_thread_id=imap_meta["gmail_thread_id"],
+                gmail_message_id=imap_meta["gmail_message_id"],
+                # Message-level metadata
+                has_attachments=msg_meta["has_attachments"],
+                attachment_count=msg_meta["attachment_count"],
+                is_bulk=msg_meta["is_bulk"],
+                importance=msg_meta["importance"],
+                mail_client=msg_meta["mail_client"],
             )
             db.add(email_record)
             new_count += 1
 
-            if new_count % 100 == 0:
+            if new_count % 50 == 0:
                 db.commit()
 
         db.commit()

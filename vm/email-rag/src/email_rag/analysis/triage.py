@@ -8,21 +8,27 @@ from tqdm import tqdm
 from email_rag.db.schema import SessionLocal, Email, Snippet
 
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://localhost:11434")
+OLLAMA_GPU_BASE = os.environ.get("OLLAMA_GPU_BASE", "http://192.168.1.95:11434")
 EMBED_MODEL = "snowflake-arctic-embed2"
 TRIAGE_MODEL = "dolphin3:8b"
 CHUNK_SIZE = 512  # tokens approx
 
 
 def get_embedding(text: str) -> list[float]:
-    """Get embedding from Ollama."""
-    resp = httpx.post(
-        f"{OLLAMA_BASE}/api/embed",
-        json={"model": EMBED_MODEL, "input": text},
-        timeout=60.0,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    return data["embeddings"][0]
+    """Get embedding from Ollama GPU (workstation) with CPU fallback."""
+    for base in [OLLAMA_GPU_BASE, OLLAMA_BASE]:
+        try:
+            resp = httpx.post(
+                f"{base}/api/embed",
+                json={"model": EMBED_MODEL, "input": text},
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data["embeddings"][0]
+        except Exception:
+            continue
+    raise RuntimeError("All Ollama endpoints failed for embedding")
 
 
 def chunk_text(text: str, chunk_size: int = CHUNK_SIZE) -> list[str]:
