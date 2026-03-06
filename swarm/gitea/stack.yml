@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__database__DB_TYPE: sqlite3
+      GITEA__server__ROOT_URL: "https://gitea.uptonx.com/"
+      GITEA__server__SSH_DOMAIN: "gitea.uptonx.com"
+      GITEA__server__SSH_PORT: "222"
+    volumes:
+      - /opt/gitea/data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - target: 22
+        published: 222
+        mode: host
+    networks:
+      - proxy
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.host == helm
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.gitea.rule=Host(`gitea.uptonx.com`)"
+        - "traefik.http.routers.gitea.entrypoints=websecure"
+        - "traefik.http.routers.gitea.tls.certresolver=cloudflare"
+        - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+        - "traefik.docker.network=proxy"
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cody.uptonx.com</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a2e;
+      font-family: system-ui, sans-serif;
+      color: #eee;
+    }
+    #gate {
+      text-align: center;
+    }
+    #gate h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+    #gate input {
+      padding: 0.75rem 1.25rem;
+      font-size: 1.1rem;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background: #16213e;
+      color: #eee;
+      outline: none;
+      width: 250px;
+    }
+    #gate input:focus { border-color: #e94560; }
+    #gate button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      background: #e94560;
+      color: #fff;
+      cursor: pointer;
+      margin-left: 0.5rem;
+    }
+    #gate button:hover { background: #c23152; }
+    #gate .error { color: #e94560; margin-top: 1rem; display: none; }
+    #content { display: none; }
+    h1 { font-size: 2rem; margin-bottom: 2rem; }
+    .banner {
+      background: linear-gradient(135deg, #e94560, #c23152);
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    svg { filter: drop-shadow(0 0 20px rgba(255, 180, 150, 0.2)); }
+    p { color: #888; margin-top: 1.5rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div id="gate">
+    <h2>Enter Password</h2>
+    <form onsubmit="return checkPass()">
+      <input type="password" id="pw" placeholder="Password" autofocus>
+      <button type="submit">Go</button>
+    </form>
+    <p class="error" id="err">Wrong password</p>
+  </div>
+
+  <div id="content">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <h1>Codys Page By Chris</h1>
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 380" width="360" height="340">
+        <defs>
+          <radialGradient id="skinL" cx="45%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#f5c4a8"/>
+            <stop offset="70%" stop-color="#e8a682"/>
+            <stop offset="100%" stop-color="#d4906e"/>
+          </radialGradient>
+          <radialGradient id="skinR" cx="55%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#f5c4a8"/>
+            <stop offset="70%" stop-color="#e8a682"/>
+            <stop offset="100%" stop-color="#d4906e"/>
+          </radialGradient>
+          <linearGradient id="crack" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c47a58"/>
+            <stop offset="50%" stop-color="#b06840"/>
+            <stop offset="100%" stop-color="#c47a58"/>
+          </linearGradient>
+        </defs>
+
+        <ellipse cx="155" cy="210" rx="105" ry="125" fill="url(#skinL)"/>
+        <ellipse cx="245" cy="210" rx="105" ry="125" fill="url(#skinR)"/>
+        <ellipse cx="155" cy="310" rx="75" ry="20" fill="#d4906e" opacity="0.3"/>
+        <ellipse cx="245" cy="310" rx="75" ry="20" fill="#d4906e" opacity="0.3"/>
+        <path d="M200 95 Q190 170 193 220 Q196 270 200 335" stroke="url(#crack)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <ellipse cx="130" cy="180" rx="40" ry="50" fill="#fdd5be" opacity="0.35"/>
+        <ellipse cx="270" cy="180" rx="40" ry="50" fill="#fdd5be" opacity="0.35"/>
+      </svg>
+
+      <div class="banner">Thieving videos to be added soon!</div>
+      <p>under construction</p>
+    </div>
+  </div>
+
+  <script>
+    var h = "chris=bestsex";
+    function checkPass() {
+      if (document.getElementById("pw").value === h) {
+        document.getElementById("gate").style.display = "none";
+        document.getElementById("content").style.display = "block";
+        sessionStorage.setItem("a", "1");
+      } else {
+        document.getElementById("err").style.display = "block";
+      }
+      return false;
+    }
+    if (sessionStorage.getItem("a") === "1") {
+      document.getElementById("gate").style.display = "none";
+      document.getElementById("content").style.display = "block";
+    }
+  </script>
+</body>
+</html>

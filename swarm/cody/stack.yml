@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  web:
+    image: nginx:alpine
+    configs:
+      - source: index
+        target: /usr/share/nginx/html/index.html
+    networks:
+      - proxy
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.cody.rule=Host(`cody.uptonx.com`)"
+        - "traefik.http.routers.cody.entrypoints=websecure"
+        - "traefik.http.routers.cody.tls.certresolver=cloudflare"
+        - "traefik.http.services.cody.loadbalancer.server.port=80"
+
+configs:
+  index:
+    file: ./index.html
+
+networks:
+  proxy:
+    external: true
