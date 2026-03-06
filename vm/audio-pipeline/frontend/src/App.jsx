@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react"
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 
 const apiUrl = window.location.origin
 
@@ -125,7 +125,15 @@ export default function App() {
   const [tab, setTab] = useState("analysis")
   const [uploadProgress, setUploadProgress] = useState(0)
   const [statusText, setStatusText] = useState("")
+  const [fileUrl, setFileUrl] = useState(null)
   const dropRef = useRef(null)
+
+  const processedUrl = useMemo(() => {
+    if (!processResult?.processed_wav_b64) return null
+    const bytes = Uint8Array.from(atob(processResult.processed_wav_b64), c => c.charCodeAt(0))
+    const blob = new Blob([bytes], { type: "audio/wav" })
+    return URL.createObjectURL(blob)
+  }, [processResult])
 
   useEffect(() => {
     fetch(`${apiUrl}/api/health`).then(r => r.json()).then(setHealth).catch(() => setHealth({ status: "error" }))
@@ -150,6 +158,7 @@ export default function App() {
 
   const handleFile = useCallback(async (f) => {
     setFile(f)
+    setFileUrl(URL.createObjectURL(f))
     setAnalysis(null)
     setProcessResult(null)
     setTranscript(null)
@@ -303,7 +312,7 @@ export default function App() {
         {file && (
           <div style={{ background: "#1e293b", borderRadius: 8, padding: 12, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>{file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
-            <button onClick={() => { setFile(null); setAnalysis(null); setProcessResult(null); setTranscript(null); setCompleted([]); setStage(null) }}
+            <button onClick={() => { setFile(null); setFileUrl(null); setAnalysis(null); setProcessResult(null); setTranscript(null); setCompleted([]); setStage(null) }}
               style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer" }}>Clear</button>
           </div>
         )}
@@ -350,6 +359,12 @@ export default function App() {
                   <div style={{ marginBottom: 16 }}>
                     <h3 style={{ fontSize: 14, color: "#94a3b8", marginBottom: 8 }}>Original Spectrogram</h3>
                     <img src={`${apiUrl}${analysis.spectrogram_url}`} alt="Spectrogram" style={{ width: "100%", borderRadius: 8 }} />
+                  </div>
+                )}
+                {fileUrl && (
+                  <div style={{ marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 14, color: "#94a3b8", marginBottom: 8 }}>Original Audio</h3>
+                    <audio controls src={fileUrl} style={{ width: "100%" }} />
                   </div>
                 )}
               </div>
@@ -474,6 +489,20 @@ export default function App() {
                     <img src={`${apiUrl}${processResult.analysis.spectrogram_url}`} alt="Processed" style={{ width: "100%", borderRadius: 8 }} />
                   </div>
                 )}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  {fileUrl && (
+                    <div>
+                      <h3 style={{ fontSize: 14, color: "#94a3b8", marginBottom: 8 }}>Original Audio</h3>
+                      <audio controls src={fileUrl} style={{ width: "100%" }} />
+                    </div>
+                  )}
+                  {processedUrl && (
+                    <div>
+                      <h3 style={{ fontSize: 14, color: "#94a3b8", marginBottom: 8 }}>Processed Audio</h3>
+                      <audio controls src={processedUrl} style={{ width: "100%" }} />
+                    </div>
+                  )}
+                </div>
                 <div style={{ display: "flex", gap: 12 }}>
                   <button onClick={downloadProcessedAudio} style={btnStyle(false)}>Download Processed WAV</button>
                   <button onClick={handleTranscribe} disabled={loading} style={btnStyle(loading)}>Transcribe</button>
