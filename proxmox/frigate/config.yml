@@ -1,0 +1,127 @@
+mqtt:
+  host: 127.0.0.1
+  port: 1883
+database:
+  path: /config/frigate.db
+go2rtc:
+  streams:
+    reolink_86:
+    - rtsp://admin:Terry!87@192.168.1.86:554/h264Preview_01_main
+    reolink_86_sub:
+    - rtsp://admin:Terry!87@192.168.1.86:554/h264Preview_01_sub
+    reolink_87:
+    - rtsp://admin:Terry!87@192.168.1.87:554/h264Preview_01_main
+    reolink_87_sub:
+    - rtsp://admin:Terry!87@192.168.1.87:554/h264Preview_01_sub
+    reolink_85:
+    - rtsp://admin:Terry!87@192.168.1.85:554/h264Preview_01_main
+    reolink_85_sub:
+    - rtsp://admin:Terry!87@192.168.1.85:554/h264Preview_01_sub
+detectors:
+  coral:
+    type: edgetpu
+    device: usb
+model:
+  path: /edgetpu_model.tflite
+  width: 320
+  height: 320
+  input_tensor: nhwc
+  input_pixel_format: rgb
+ffmpeg:
+  hwaccel_args: preset-vaapi
+record:
+  enabled: true
+  alerts:
+    retain:
+      days: 30
+  detections:
+    retain:
+      days: 30
+  continuous:
+    days: 0
+  motion:
+    days: 4
+snapshots:
+  enabled: true
+  timestamp: true
+  bounding_box: true
+  crop: true
+  retain:
+    default: 30
+semantic_search:
+  enabled: true
+  model_size: large
+face_recognition:
+  enabled: true
+  min_area: 2500
+objects:
+  track:
+  - person
+  - car
+  - truck
+  - motorcycle
+  - bicycle
+  - dog
+  - cat
+  - bus
+  filters:
+    person:
+      min_area: 5000
+      min_score: 0.5
+      threshold: 0.7
+cameras:
+  reolink_86:
+    ffmpeg:
+      inputs:
+      - path: rtsp://127.0.0.1:8554/reolink_86_sub
+        roles:
+        - detect
+      - path: rtsp://127.0.0.1:8554/reolink_86
+        roles:
+        - record
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 10
+    record:
+      enabled: true
+    snapshots:
+      enabled: true
+  reolink_87:
+    ffmpeg:
+      inputs:
+      - path: rtsp://127.0.0.1:8554/reolink_87_sub
+        roles:
+        - detect
+      - path: rtsp://127.0.0.1:8554/reolink_87
+        roles:
+        - record
+    detect:
+      enabled: true
+      width: 896
+      height: 512
+      fps: 10
+    record:
+      enabled: true
+    snapshots:
+      enabled: true
+  reolink_85:
+    ffmpeg:
+      inputs:
+      - path: rtsp://127.0.0.1:8554/reolink_85_sub
+        roles:
+        - detect
+      - path: rtsp://127.0.0.1:8554/reolink_85
+        roles:
+        - record
+    detect:
+      enabled: true
+      width: 1920
+      height: 576
+      fps: 10
+    record:
+      enabled: true
+    snapshots:
+      enabled: true
+version: 0.17-0

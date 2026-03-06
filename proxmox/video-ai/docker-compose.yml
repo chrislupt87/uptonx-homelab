@@ -1,0 +1,27 @@
+services:
+  qdrant:
+    container_name: qdrant
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - qdrant-data:/qdrant/storage
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+
+  frigate-notify:
+    container_name: frigate-notify
+    image: python:3.12-slim
+    restart: unless-stopped
+    command: >
+      bash -c 'pip install paho-mqtt requests && python /app/notify.py'
+    volumes:
+      - /opt/stacks/video-ai/notify:/app
+    environment:
+      FRIGATE_URL: http://192.168.1.18:5000
+      MQTT_HOST: 192.168.1.18
+      MQTT_PORT: "1883"
+
+volumes:
+  qdrant-data:
