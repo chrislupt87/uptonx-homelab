@@ -35,10 +35,33 @@ http:
     audio:
       rule: "Host(`audio.uptonx.com`)"
       service: audio
+      middlewares:
+        - audio-large-upload
       entryPoints:
         - websecure
       tls:
         certResolver: cloudflare
+
+    frigate:
+      rule: "Host(`frigate.uptonx.com`)"
+      service: frigate
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    cody:
+      rule: "Host(`cody.uptonx.com`)"
+      service: cody
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+  middlewares:
+    audio-large-upload:
+      buffering:
+        maxRequestBodyBytes: 2147483648
 
   services:
     technitium:
@@ -65,3 +88,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.74:8090"
+
+    frigate:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.18:5000"
+
+    cody:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.23:8091"
