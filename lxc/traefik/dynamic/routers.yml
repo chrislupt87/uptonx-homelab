@@ -35,8 +35,6 @@ http:
     audio:
       rule: "Host(`audio.uptonx.com`)"
       service: audio
-      middlewares:
-        - audio-large-upload
       entryPoints:
         - websecure
       tls:
@@ -57,11 +55,6 @@ http:
         - websecure
       tls:
         certResolver: cloudflare
-
-  middlewares:
-    audio-large-upload:
-      buffering:
-        maxRequestBodyBytes: 2147483648
 
   services:
     technitium:
