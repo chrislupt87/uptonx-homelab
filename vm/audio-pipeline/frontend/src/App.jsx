@@ -131,6 +131,23 @@ export default function App() {
     fetch(`${apiUrl}/api/health`).then(r => r.json()).then(setHealth).catch(() => setHealth({ status: "error" }))
   }, [])
 
+  const applyRecommended = () => {
+    if (!analysis?.recommended?.params) return
+    const rec = analysis.recommended.params
+    setParams({
+      denoise_mode: rec.denoise_mode || "spectral",
+      noise_reduction: rec.noise_reduction ?? 30,
+      noise_profile_seconds: rec.noise_profile_seconds ?? 1.5,
+      eq: rec.eq || defaultParams.eq,
+      comp: { ...defaultParams.comp, ...rec.comp },
+      gate: rec.gate || defaultParams.gate,
+      voice_enhance: rec.voice_enhance ?? 0,
+      harmonic_enhance: rec.harmonic_enhance ?? 0,
+      gain_db: rec.gain_db ?? 0,
+      lufs_target: rec.lufs_target ?? -16,
+    })
+  }
+
   const handleFile = useCallback(async (f) => {
     setFile(f)
     setAnalysis(null)
@@ -340,7 +357,32 @@ export default function App() {
 
             {tab === "params" && (
               <div style={{ background: "#1e293b", borderRadius: 8, padding: 20 }}>
-                <h3 style={{ fontSize: 16, marginBottom: 16 }}>Processing Parameters</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 16, margin: 0 }}>Processing Parameters</h3>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {analysis?.recommended && (
+                      <button onClick={applyRecommended}
+                        style={{ padding: "8px 16px", borderRadius: 6, border: "none", cursor: "pointer",
+                          background: "#166534", color: "#86efac", fontSize: 12, fontWeight: 600 }}>
+                        Apply Recommended
+                      </button>
+                    )}
+                    <button onClick={() => setParams(defaultParams)}
+                      style={{ padding: "8px 16px", borderRadius: 6, border: "none", cursor: "pointer",
+                        background: "#334155", color: "#94a3b8", fontSize: 12, fontWeight: 600 }}>
+                      Reset Defaults
+                    </button>
+                  </div>
+                </div>
+
+                {analysis?.recommended?.reasons && (
+                  <div style={{ background: "#0f172a", borderRadius: 8, padding: 12, marginBottom: 20, borderLeft: "3px solid #22c55e" }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#86efac", marginBottom: 6 }}>AI Recommendations</div>
+                    {analysis.recommended.reasons.map((r, i) => (
+                      <div key={i} style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.6 }}>{r}</div>
+                    ))}
+                  </div>
+                )}
 
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ fontSize: 13, color: "#94a3b8", marginBottom: 8 }}>Noise Reduction</h4>
@@ -412,7 +454,6 @@ export default function App() {
 
                 <div style={{ display: "flex", gap: 12 }}>
                   <button onClick={handleProcess} disabled={loading} style={btnStyle(loading)}>Process Audio</button>
-                  <button onClick={() => setParams(defaultParams)} style={{ ...btnStyle(false), background: "#334155" }}>Reset Defaults</button>
                 </div>
               </div>
             )}
@@ -487,7 +528,8 @@ export default function App() {
 
             {!loading && analysis && !processResult && tab === "analysis" && (
               <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-                <button onClick={() => setTab("params")} style={btnStyle(false)}>Configure & Process</button>
+                <button onClick={() => { applyRecommended(); setTab("params") }} style={btnStyle(false)}>Configure & Process (Recommended)</button>
+                <button onClick={() => setTab("params")} style={{ ...btnStyle(false), background: "#334155" }}>Configure Manual</button>
                 <button onClick={handleTranscribe} disabled={loading} style={{ ...btnStyle(loading), background: "#7c3aed" }}>Transcribe Raw</button>
               </div>
             )}
