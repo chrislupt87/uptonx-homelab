@@ -17,6 +17,10 @@ go2rtc:
     - rtsp://admin:Terry!87@192.168.1.85:554/h264Preview_01_main
     reolink_85_sub:
     - rtsp://admin:Terry!87@192.168.1.85:554/h264Preview_01_sub
+    tapo_46:
+    - rtsp://chris87:Terry!87@192.168.1.46:554/stream1
+    tapo_46_sub:
+    - rtsp://chris87:Terry!87@192.168.1.46:554/stream2
 detectors:
   coral:
     type: edgetpu
@@ -119,6 +123,24 @@ cameras:
       enabled: true
       width: 1920
       height: 576
+      fps: 10
+    record:
+      enabled: true
+    snapshots:
+      enabled: true
+  tapo_46:
+    ffmpeg:
+      inputs:
+      - path: rtsp://127.0.0.1:8554/tapo_46_sub
+        roles:
+        - detect
+      - path: rtsp://127.0.0.1:8554/tapo_46
+        roles:
+        - record
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
       fps: 10
     record:
       enabled: true
