@@ -62,6 +62,44 @@ function EQSlider({ label, value, onChange }) {
   )
 }
 
+function ProgressBar({ progress, label }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      {label && <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 4 }}>{label}</div>}
+      <div style={{ background: "#1e293b", borderRadius: 6, height: 20, overflow: "hidden", position: "relative" }}>
+        <div style={{
+          background: "linear-gradient(90deg, #3b82f6, #22c55e)", height: "100%", borderRadius: 6,
+          width: `${progress}%`, transition: "width 0.3s ease"
+        }} />
+        <span style={{
+          position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 11, fontWeight: 600, color: "#fff"
+        }}>{Math.round(progress)}%</span>
+      </div>
+    </div>
+  )
+}
+
+function uploadWithProgress(url, formData, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open("POST", url)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(JSON.parse(xhr.responseText))
+      } else {
+        reject(new Error(`Request failed: ${xhr.status}`))
+      }
+    }
+    xhr.onerror = () => reject(new Error("Network error"))
+    xhr.send(formData)
+  })
+}
+
 export default function App() {
   const [health, setHealth] = useState(null)
   const [file, setFile] = useState(null)
@@ -74,6 +112,8 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [tab, setTab] = useState("analysis")
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [statusText, setStatusText] = useState("")
   const dropRef = useRef(null)
 
   useEffect(() => {
@@ -89,14 +129,17 @@ export default function App() {
     setStage("analyze")
     setError(null)
     setLoading(true)
+    setUploadProgress(0)
+    setStatusText("Uploading file...")
     setTab("analysis")
 
     try {
       const fd = new FormData()
       fd.append("file", f)
-      const r = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: fd })
-      if (!r.ok) throw new Error(`Analyze failed: ${r.status}`)
-      const data = await r.json()
+      const data = await uploadWithProgress(`${apiUrl}/api/analyze`, fd, (p) => {
+        setUploadProgress(p)
+        setStatusText(p < 100 ? "Uploading file..." : "Analyzing audio...")
+      })
       setAnalysis(data)
       setCompleted(["upload", "analyze"])
       setStage("process")
@@ -104,6 +147,8 @@ export default function App() {
       setError(e.message)
     } finally {
       setLoading(false)
+      setUploadProgress(0)
+      setStatusText("")
     }
   }, [])
 
@@ -112,13 +157,16 @@ export default function App() {
     setLoading(true)
     setError(null)
     setStage("process")
+    setUploadProgress(0)
+    setStatusText("Uploading file...")
     try {
       const fd = new FormData()
       fd.append("file", file)
       fd.append("params", JSON.stringify(params))
-      const r = await fetch(`${apiUrl}/api/process`, { method: "POST", body: fd })
-      if (!r.ok) throw new Error(`Process failed: ${r.status}`)
-      const data = await r.json()
+      const data = await uploadWithProgress(`${apiUrl}/api/process`, fd, (p) => {
+        setUploadProgress(p)
+        setStatusText(p < 100 ? "Uploading file..." : "Processing audio...")
+      })
       setProcessResult(data)
       setCompleted(prev => [...new Set([...prev, "process"])])
       setStage("transcribe")
@@ -127,6 +175,8 @@ export default function App() {
       setError(e.message)
     } finally {
       setLoading(false)
+      setUploadProgress(0)
+      setStatusText("")
     }
   }
 
@@ -134,6 +184,8 @@ export default function App() {
     setLoading(true)
     setError(null)
     setStage("transcribe")
+    setUploadProgress(0)
+    setStatusText("Uploading file...")
     try {
       let fd = new FormData()
       if (processResult?.processed_wav_b64) {
@@ -143,9 +195,10 @@ export default function App() {
       } else {
         fd.append("file", file)
       }
-      const r = await fetch(`${apiUrl}/api/transcribe`, { method: "POST", body: fd })
-      if (!r.ok) throw new Error(`Transcribe failed: ${r.status}`)
-      const data = await r.json()
+      const data = await uploadWithProgress(`${apiUrl}/api/transcribe`, fd, (p) => {
+        setUploadProgress(p)
+        setStatusText(p < 100 ? "Uploading file..." : "Transcribing audio...")
+      })
       setTranscript(data)
       setCompleted(prev => [...new Set([...prev, "transcribe"])])
       setTab("transcript")
@@ -153,6 +206,8 @@ export default function App() {
       setError(e.message)
     } finally {
       setLoading(false)
+      setUploadProgress(0)
+      setStatusText("")
     }
   }
 
@@ -213,7 +268,7 @@ export default function App() {
             style={{ border: "2px dashed #334155", borderRadius: 12, padding: 60, textAlign: "center", cursor: "pointer", marginBottom: 24 }}>
             <div style={{ fontSize: 48, marginBottom: 8 }}>&#x1F399;</div>
             <div style={{ fontSize: 16, color: "#94a3b8" }}>Drop audio file here or click to browse</div>
-            <div style={{ fontSize: 12, color: "#475569", marginTop: 8 }}>WAV, MP3, FLAC, M4A, OGG up to 150MB</div>
+            <div style={{ fontSize: 12, color: "#475569", marginTop: 8 }}>WAV, MP3, FLAC, M4A, OGG — no size limit</div>
           </div>
         )}
 
@@ -226,9 +281,13 @@ export default function App() {
         )}
 
         {loading && (
-          <div style={{ textAlign: "center", padding: 40 }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>Processing...</div>
-            <div style={{ color: "#64748b" }}>This may take a while for large files</div>
+          <div style={{ padding: "24px 0" }}>
+            <ProgressBar progress={uploadProgress} label={statusText} />
+            {uploadProgress >= 100 && (
+              <div style={{ textAlign: "center", color: "#64748b", fontSize: 13, marginTop: 8 }}>
+                Server is processing — this may take a while for large files
+              </div>
+            )}
           </div>
         )}
 
