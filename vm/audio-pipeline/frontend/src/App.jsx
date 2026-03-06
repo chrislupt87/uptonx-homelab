@@ -62,21 +62,32 @@ function EQSlider({ label, value, onChange }) {
   )
 }
 
-function ProgressBar({ progress, label }) {
+function ProgressBar({ progress, label, indeterminate }) {
   return (
     <div style={{ marginBottom: 8 }}>
       {label && <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 4 }}>{label}</div>}
       <div style={{ background: "#1e293b", borderRadius: 6, height: 20, overflow: "hidden", position: "relative" }}>
-        <div style={{
-          background: "linear-gradient(90deg, #3b82f6, #22c55e)", height: "100%", borderRadius: 6,
-          width: `${progress}%`, transition: "width 0.3s ease"
-        }} />
-        <span style={{
-          position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 11, fontWeight: 600, color: "#fff"
-        }}>{Math.round(progress)}%</span>
+        {indeterminate ? (
+          <div style={{
+            background: "linear-gradient(90deg, transparent, #3b82f6, #22c55e, transparent)",
+            height: "100%", borderRadius: 6, width: "40%",
+            animation: "pulse-slide 1.5s ease-in-out infinite"
+          }} />
+        ) : (
+          <div style={{
+            background: "linear-gradient(90deg, #3b82f6, #22c55e)", height: "100%", borderRadius: 6,
+            width: `${progress}%`, transition: "width 0.3s ease"
+          }} />
+        )}
+        {!indeterminate && (
+          <span style={{
+            position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 11, fontWeight: 600, color: "#fff"
+          }}>{Math.round(progress)}%</span>
+        )}
       </div>
+      <style>{`@keyframes pulse-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }`}</style>
     </div>
   )
 }
@@ -282,11 +293,10 @@ export default function App() {
 
         {loading && (
           <div style={{ padding: "24px 0" }}>
-            <ProgressBar progress={uploadProgress} label={statusText} />
-            {uploadProgress >= 100 && (
-              <div style={{ textAlign: "center", color: "#64748b", fontSize: 13, marginTop: 8 }}>
-                Server is processing — this may take a while for large files
-              </div>
+            {uploadProgress < 100 ? (
+              <ProgressBar progress={uploadProgress} label={statusText} />
+            ) : (
+              <ProgressBar indeterminate label={statusText} />
             )}
           </div>
         )}
