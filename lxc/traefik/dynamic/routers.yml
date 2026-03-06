@@ -56,6 +56,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    landing:
+      rule: "Host(`uptonx.com`) || Host(`www.uptonx.com`)"
+      service: landing
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   services:
     technitium:
       loadBalancer:
@@ -91,3 +99,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.23:8091"
+
+    landing:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.23:8092"

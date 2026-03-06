@@ -9,7 +9,7 @@ services:
     networks:
       - proxy
     ports:
-      - "8091:80"
+      - "8092:80"
     deploy:
       replicas: 1
       placement:

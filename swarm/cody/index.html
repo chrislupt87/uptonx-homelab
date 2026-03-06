@@ -81,32 +81,39 @@
     <div style="display:flex;flex-direction:column;align-items:center;">
       <h1>Codys Page By Chris</h1>
 
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 380" width="360" height="340">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="340" height="340">
         <defs>
-          <radialGradient id="skinL" cx="45%" cy="35%" r="65%">
+          <radialGradient id="skinL" cx="40%" cy="40%" r="60%">
             <stop offset="0%" stop-color="#f5c4a8"/>
-            <stop offset="70%" stop-color="#e8a682"/>
+            <stop offset="60%" stop-color="#e8a682"/>
             <stop offset="100%" stop-color="#d4906e"/>
           </radialGradient>
-          <radialGradient id="skinR" cx="55%" cy="35%" r="65%">
+          <radialGradient id="skinR" cx="60%" cy="40%" r="60%">
             <stop offset="0%" stop-color="#f5c4a8"/>
-            <stop offset="70%" stop-color="#e8a682"/>
+            <stop offset="60%" stop-color="#e8a682"/>
             <stop offset="100%" stop-color="#d4906e"/>
           </radialGradient>
-          <linearGradient id="crack" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#c47a58"/>
-            <stop offset="50%" stop-color="#b06840"/>
-            <stop offset="100%" stop-color="#c47a58"/>
-          </linearGradient>
+          <radialGradient id="shadow" cx="50%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#c47a58" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#c47a58" stop-opacity="0"/>
+          </radialGradient>
         </defs>
-
-        <ellipse cx="155" cy="210" rx="105" ry="125" fill="url(#skinL)"/>
-        <ellipse cx="245" cy="210" rx="105" ry="125" fill="url(#skinR)"/>
-        <ellipse cx="155" cy="310" rx="75" ry="20" fill="#d4906e" opacity="0.3"/>
-        <ellipse cx="245" cy="310" rx="75" ry="20" fill="#d4906e" opacity="0.3"/>
-        <path d="M200 95 Q190 170 193 220 Q196 270 200 335" stroke="url(#crack)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <ellipse cx="130" cy="180" rx="40" ry="50" fill="#fdd5be" opacity="0.35"/>
-        <ellipse cx="270" cy="180" rx="40" ry="50" fill="#fdd5be" opacity="0.35"/>
+        <!-- left cheek -->
+        <path d="M200 80 Q120 80 80 180 Q50 270 100 340 Q140 390 200 360" fill="url(#skinL)"/>
+        <!-- right cheek -->
+        <path d="M200 80 Q280 80 320 180 Q350 270 300 340 Q260 390 200 360" fill="url(#skinR)"/>
+        <!-- cleft -->
+        <path d="M200 90 Q192 150 188 210 Q185 270 195 330 Q198 350 200 360" stroke="#b06840" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- inner shadow left -->
+        <path d="M200 120 Q193 170 190 230 Q188 280 196 340" stroke="#c47a58" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.25"/>
+        <!-- inner shadow right -->
+        <path d="M200 120 Q207 170 210 230 Q212 280 204 340" stroke="#c47a58" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.15"/>
+        <!-- highlight left cheek -->
+        <ellipse cx="140" cy="200" rx="45" ry="55" fill="#fdd5be" opacity="0.3"/>
+        <!-- highlight right cheek -->
+        <ellipse cx="260" cy="200" rx="45" ry="55" fill="#fdd5be" opacity="0.3"/>
+        <!-- bottom crease -->
+        <path d="M120 340 Q160 370 200 360 Q240 370 280 340" stroke="#c47a58" stroke-width="2" fill="none" opacity="0.4"/>
       </svg>
 
       <div class="banner">Thieving videos to be added soon!</div>
