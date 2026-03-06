@@ -33,5 +33,9 @@ providers:
     exposedByDefault: false
     network: proxy
 
+metrics:
+  prometheus:
+    entryPoint: traefik
+
 log:
   level: INFO

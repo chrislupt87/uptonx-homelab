@@ -88,6 +88,13 @@ def detect_anomalies():
     run_anomaly_detection()
 
 
+@cli.command("forensic-scan")
+def forensic_scan():
+    """Scan for hidden codes, steganography, and reply chain tampering."""
+    from email_rag.analysis.forensic_decoder import run_forensic_scan
+    run_forensic_scan()
+
+
 @cli.command("backfill-metadata")
 def backfill_metadata():
     """Re-parse raw_messages to populate metadata columns on existing emails."""

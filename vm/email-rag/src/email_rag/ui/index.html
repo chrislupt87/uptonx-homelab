@@ -126,8 +126,9 @@
             overflow-y: auto;
         }
 
-        /* On-screen keyboard */
-        .keyboard {
+        /* On-screen keyboard — removed, using native input */
+        .keyboard { display: none !important; }
+        .keyboard-DISABLED {
             display: none;
             background: #0e0e1a;
             border-top: 1px solid #2a2a4a;
@@ -425,8 +426,7 @@
             <div class="panel">
                 <div class="query-row">
                     <select id="model-select"><option value="claude">Claude Sonnet 4.6</option></select>
-                    <input type="text" id="query-input" placeholder="Ask about emails, people, events..."
-                           onfocus="showKeyboard('query-input')" readonly>
+                    <input type="text" id="query-input" placeholder="Ask about emails, people, events...">
                     <button class="touch-btn" onclick="askQuestion()">Ask</button>
                 </div>
                 <div class="answer-box" id="answer-box">Tap the input and type a question.</div>
@@ -477,10 +477,8 @@
                         <option value="event">Event</option>
                         <option value="context">Context</option>
                     </select>
-                    <input type="text" id="fact-subject" placeholder="Subject"
-                           onfocus="showKeyboard('fact-subject')" readonly>
-                    <input type="text" id="fact-content" placeholder="Description"
-                           onfocus="showKeyboard('fact-content')" readonly>
+                    <input type="text" id="fact-subject" placeholder="Subject">
+                    <input type="text" id="fact-content" placeholder="Description">
                     <button onclick="addFact()">Add</button>
                 </div>
                 <div id="facts-list"></div>
@@ -509,8 +507,7 @@
                 <div id="modal-question"></div>
                 <div class="ctx" id="modal-context"></div>
             </div>
-            <textarea id="modal-answer" placeholder="Your answer..."
-                      onfocus="showKeyboard('modal-answer')" readonly></textarea>
+            <textarea id="modal-answer" placeholder="Your answer..."></textarea>
             <div class="fact-options">
                 <span style="font-size:13px;color:#aaa">Save as fact:</span>
                 <select id="modal-fact-category">
@@ -520,8 +517,7 @@
                     <option value="event">Event</option>
                     <option value="context">Context</option>
                 </select>
-                <input type="text" id="modal-fact-subject" placeholder="Subject"
-                       onfocus="showKeyboard('modal-fact-subject')" readonly>
+                <input type="text" id="modal-fact-subject" placeholder="Subject">
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">Cancel</button>

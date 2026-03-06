@@ -10,7 +10,7 @@ from email_rag.db.schema import SessionLocal, Email, Finding, ClaimLog, Timeline
 
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://localhost:11434")
 OLLAMA_GPU_BASE = os.environ.get("OLLAMA_GPU_BASE", "http://192.168.1.95:11434")
-DEEP_MODEL = os.environ.get("DEEP_MODEL", "dolphin3:8b")
+DEEP_MODEL = os.environ.get("DEEP_MODEL", "qwen2.5:72b")
 
 VALID_FINDING_TYPES = {"pattern", "contradiction", "timeline_gap", "behavioral"}
 VALID_GROUNDINGS = {"grounded", "inferred", "speculative"}
@@ -87,7 +87,7 @@ def ollama_generate(prompt: str, model: str = DEEP_MODEL) -> str:
                     "model": model,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {"temperature": 0.3, "num_predict": 2048},
+                    "options": {"temperature": 0.3, "num_predict": 4096, "num_ctx": 32768},
                 },
                 timeout=600.0,
             )
@@ -148,7 +148,7 @@ def analyze_thread(thread_id: str, db: Session):
     try:
         response = ollama_generate(
             ANALYSIS_PROMPT.format(
-                thread_text=thread_text[:8000],
+                thread_text=thread_text[:24000],
                 background_knowledge=background_knowledge,
             )
         )
