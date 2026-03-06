@@ -5,6 +5,7 @@ set -euo pipefail
 # Prerequisites:
 #   - Swarm initialized (run init-swarm.sh first)
 #   - /opt/secrets/swarm.env exists on the manager with required vars
+#   - Traefik running on CT 102 (.15) with Docker provider pointing at .23:2375
 #   - SSH access to swarm manager as root
 
 MANAGER="root@192.168.1.23"
@@ -23,21 +24,14 @@ rsync -az --delete \
   --exclude='deploy-all.sh' \
   "$SCRIPT_DIR/" "$MANAGER:/opt/stacks/"
 
-# Sync Traefik config (may have been updated since init)
-echo "==> Syncing Traefik config ..."
-ssh "$MANAGER" "mkdir -p /opt/traefik/dynamic /opt/traefik/letsencrypt"
-rsync -az "$SCRIPT_DIR/traefik/traefik.yml" "$MANAGER:/opt/traefik/traefik.yml"
-rsync -az "$SCRIPT_DIR/traefik/dynamic/" "$MANAGER:/opt/traefik/dynamic/"
-
 # Check secrets env file
 echo "==> Checking secrets ..."
-REQUIRED_VARS="CF_DNS_API_TOKEN INFISICAL_ENCRYPTION_KEY INFISICAL_AUTH_SECRET INFISICAL_POSTGRES_PASSWORD"
+REQUIRED_VARS="INFISICAL_ENCRYPTION_KEY INFISICAL_AUTH_SECRET INFISICAL_POSTGRES_PASSWORD"
 ssh "$MANAGER" bash -s <<CHECKEOF
 set -euo pipefail
 if [ ! -f /opt/secrets/swarm.env ]; then
   echo "ERROR: /opt/secrets/swarm.env not found."
   echo "Create it with:"
-  echo "  CF_DNS_API_TOKEN=..."
   echo "  INFISICAL_ENCRYPTION_KEY=..."
   echo "  INFISICAL_AUTH_SECRET=..."
   echo "  INFISICAL_POSTGRES_PASSWORD=..."
@@ -53,11 +47,8 @@ done
 echo "All required secrets present."
 CHECKEOF
 
-# Deploy stacks in dependency order
+# Deploy stacks
 echo ""
-echo "==> Deploying traefik ..."
-ssh "$MANAGER" "source /opt/secrets/swarm.env && docker stack deploy -c /opt/stacks/traefik/stack.yml traefik"
-
 echo "==> Deploying portainer ..."
 ssh "$MANAGER" "docker stack deploy -c /opt/stacks/portainer/stack.yml portainer"
 
@@ -86,9 +77,8 @@ echo ""
 echo "========================================="
 echo " Post-deployment checklist:"
 echo "========================================="
-echo "1. Update Technitium DNS: *.uptonx.com -> 192.168.1.23"
-echo "2. Verify: curl -k https://whoami.uptonx.com"
-echo "3. Set up Portainer admin: https://portainer.uptonx.com"
-echo "4. Verify Gitea: https://gitea.uptonx.com"
-echo "5. Verify Infisical: https://infisical.uptonx.com"
+echo "1. Verify: curl -k https://whoami.uptonx.com"
+echo "2. Set up Portainer admin: https://portainer.uptonx.com"
+echo "3. Verify Gitea: https://gitea.uptonx.com"
+echo "4. Verify Infisical: https://infisical.uptonx.com"
 echo ""

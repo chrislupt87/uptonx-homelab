@@ -138,10 +138,8 @@ ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp                          # SSH
-ufw allow 80/tcp                          # Traefik HTTP
-ufw allow 443/tcp                         # Traefik HTTPS
-ufw allow 8080/tcp                        # Traefik dashboard
-ufw allow 2375/tcp                        # Docker API (LAN only — tighten later if needed)
+ufw allow from 192.168.1.15 to any port 2375 proto tcp  # Traefik
+ufw allow from 192.168.1.21 to any port 2375 proto tcp  # Portainer (legacy)
 ufw allow 2377/tcp                        # Swarm cluster management
 ufw allow 7946/tcp                        # Swarm node communication
 ufw allow 7946/udp                        # Swarm node communication
@@ -251,19 +249,11 @@ echo "========================================="
 echo " Phase 4: Volume Dirs & Config"
 echo "========================================="
 
-# Manager: Traefik config and certs
-echo "==> Creating Traefik directories on manager ..."
+# Manager: stacks and secrets directories
+echo "==> Creating directories on manager ..."
 ssh "$MANAGER_HOST" pct exec 106 -- bash -s <<'VOLEOF'
-mkdir -p /opt/traefik/dynamic /opt/traefik/letsencrypt /opt/secrets /opt/stacks
+mkdir -p /opt/secrets /opt/stacks
 VOLEOF
-
-# Copy Traefik config to manager
-echo "==> Copying Traefik config to manager ..."
-ssh "$MANAGER_HOST" pct push 106 "$SCRIPT_DIR/traefik/traefik.yml" /opt/traefik/traefik.yml 2>/dev/null || \
-  cat "$SCRIPT_DIR/traefik/traefik.yml" | ssh "$MANAGER_HOST" "pct exec 106 -- tee /opt/traefik/traefik.yml > /dev/null"
-
-ssh "$MANAGER_HOST" pct push 106 "$SCRIPT_DIR/traefik/dynamic/routers.yml" /opt/traefik/dynamic/routers.yml 2>/dev/null || \
-  cat "$SCRIPT_DIR/traefik/dynamic/routers.yml" | ssh "$MANAGER_HOST" "pct exec 106 -- tee /opt/traefik/dynamic/routers.yml > /dev/null"
 
 # Worker 1 (helm): Gitea data, Infisical postgres
 echo "==> Creating volume directories on worker 1 (helm) ..."
@@ -294,16 +284,13 @@ echo ""
 echo "1. Create secrets file on manager:"
 echo "   ssh root@192.168.1.23"
 echo "   cat > /opt/secrets/swarm.env <<'EOF'"
-echo "   CF_DNS_API_TOKEN=<your-cloudflare-api-token>"
 echo "   INFISICAL_ENCRYPTION_KEY=<your-encryption-key>"
 echo "   INFISICAL_AUTH_SECRET=<your-auth-secret>"
 echo "   INFISICAL_POSTGRES_PASSWORD=<your-postgres-password>"
 echo "   EOF"
 echo ""
-echo "2. Deploy all stacks:"
-echo "   ./deploy-all.sh"
+echo "2. Restart Traefik (CT 102, .15) to pick up swarm Docker provider"
 echo ""
-echo "3. Update Technitium DNS:"
-echo "   *.uptonx.com -> 192.168.1.23 (swarm manager)"
-echo "   (was .15 — old standalone Traefik LXC)"
+echo "3. Deploy all stacks:"
+echo "   ./deploy-all.sh"
 echo ""

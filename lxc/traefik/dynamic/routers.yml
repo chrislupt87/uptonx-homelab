@@ -1,32 +1,8 @@
 http:
   routers:
-    gitea:
-      rule: "Host(`gitea.uptonx.com`)"
-      service: gitea
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
-
-    portainer:
-      rule: "Host(`portainer.uptonx.com`)"
-      service: portainer
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
-
     technitium:
       rule: "Host(`dns.uptonx.com`)"
       service: technitium
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
-
-    infisical:
-      rule: "Host(`infisical.uptonx.com`)"
-      service: infisical
       entryPoints:
         - websecure
       tls:
@@ -56,43 +32,36 @@ http:
       tls:
         certResolver: cloudflare
 
+    audio:
+      rule: "Host(`audio.uptonx.com`)"
+      service: audio
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   services:
-    infisical:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.1.22:8080"
-
-    gitea:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.1.20:3000"
-
-    portainer:
-      loadBalancer:
-        servers:
-          - url: "https://192.168.1.21:9443"
-        serversTransport: insecureTransport
-
     technitium:
       loadBalancer:
         servers:
           - url: "http://192.168.1.51:5380"
-
-    chat:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.1.110:8080"
-
-    email-rag:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.1.110:3000"
 
     traefik-dashboard:
       loadBalancer:
         servers:
           - url: "http://192.168.1.15:8080"
 
-  serversTransports:
-    insecureTransport:
-      insecureSkipVerify: true
+    email-rag:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.110:3000"
+
+    chat:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.110:8080"
+
+    audio:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.74:8090"
