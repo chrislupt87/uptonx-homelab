@@ -69,6 +69,12 @@ def lufs_normalize(audio: np.ndarray, sr: int, target_lufs: float) -> np.ndarray
         return audio
 
 
+
+def sanitize_audio(audio: np.ndarray) -> np.ndarray:
+    """Replace NaN/Inf values with zero and clip to valid range."""
+    audio = np.nan_to_num(audio, nan=0.0, posinf=1.0, neginf=-1.0)
+    return np.clip(audio, -1.0, 1.0)
+
 def file_hashes(path: str) -> dict:
     md5 = hashlib.md5()
     sha256 = hashlib.sha256()
@@ -178,11 +184,11 @@ async def process(
             shutil.copyfileobj(file.file, f)
 
         audio, sr = librosa.load(str(tmp_in), sr=16000, mono=True)
-        audio = denoise(audio, sr, p)
-        audio = full_pipeline(audio, sr, p)
+        audio = sanitize_audio(denoise(audio, sr, p))
+        audio = sanitize_audio(full_pipeline(audio, sr, p))
 
         lufs = p.get("lufs_target", LUFS_TARGET)
-        audio = lufs_normalize(audio, sr, lufs)
+        audio = sanitize_audio(lufs_normalize(audio, sr, lufs))
 
         sf.write(str(tmp_out), audio, sr, subtype="PCM_16")
         spec_url = save_spectrogram(audio, sr, f"proc_{job_id}")
