@@ -21,12 +21,11 @@ services:
       - WHISPER_DEVICE=cpu
       - WHISPER_COMPUTE_TYPE=int8
       - DEEPFILTER_ENABLED=true
-      - MAX_UPLOAD_MB=150
       - LUFS_TARGET=-16
       - HF_TOKEN=${HF_TOKEN:-}
       - AUDIO_DB_PATH=/data/audio_pipeline.db
-    mem_limit: 8g
-    cpus: 6
+    mem_limit: 24g
+    cpus: 10
 
   audio_frontend:
     image: audio-pipeline-frontend:latest
