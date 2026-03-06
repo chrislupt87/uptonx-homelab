@@ -32,16 +32,32 @@ def get_model(model_name=None):
     return _models[model_name]
 
 
+def _do_transcribe(model, audio_path, beam_size):
+    """Try transcription with auto-detect, fall back to English on failure."""
+    try:
+        return model.transcribe(
+            audio_path,
+            language=None,
+            word_timestamps=True,
+            vad_filter=True,
+            beam_size=beam_size,
+            vad_parameters={"min_silence_duration_ms": 500}
+        )
+    except ValueError:
+        # Language detection failed (empty sequence) — retry with explicit English
+        return model.transcribe(
+            audio_path,
+            language="en",
+            word_timestamps=True,
+            vad_filter=True,
+            beam_size=beam_size,
+            vad_parameters={"min_silence_duration_ms": 500}
+        )
+
+
 def transcribe(audio_path, beam_size=5, model_name=None):
     model = get_model(model_name)
-    segments, info = model.transcribe(
-        audio_path,
-        language=None,
-        word_timestamps=True,
-        vad_filter=True,
-        beam_size=beam_size,
-        vad_parameters={"min_silence_duration_ms": 500}
-    )
+    segments, info = _do_transcribe(model, audio_path, beam_size)
 
     result_segments = []
     for seg in segments:
@@ -77,14 +93,7 @@ def transcribe(audio_path, beam_size=5, model_name=None):
 def transcribe_streaming(audio_path, beam_size=5, model_name=None):
     """Generator that yields segments one at a time for WebSocket streaming."""
     model = get_model(model_name)
-    segments, info = model.transcribe(
-        audio_path,
-        language=None,
-        word_timestamps=True,
-        vad_filter=True,
-        beam_size=beam_size,
-        vad_parameters={"min_silence_duration_ms": 500}
-    )
+    segments, info = _do_transcribe(model, audio_path, beam_size)
 
     yield {
         "type": "info",
