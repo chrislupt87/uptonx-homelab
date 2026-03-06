@@ -1,0 +1,29 @@
+mqtt:
+  host: 192.168.1.18
+  port: 1883
+  topics:
+    frigate: frigate/#
+
+frigate:
+  url: http://192.168.1.18:5000
+  cameras:
+    - reolink_85
+    - reolink_86
+    - reolink_87
+    - tapo_46
+  labels:
+    - person
+  attempts:
+    latest: 1
+    snapshot: 1
+
+detectors:
+  compreface:
+    enabled: true
+    url: http://compreface:8000
+    recognition_key: PLACEHOLDER
+
+confidence: 60
+unknown_confidence: 40
+auth:
+  enabled: false

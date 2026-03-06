@@ -84,6 +84,30 @@ http:
       tls:
         certResolver: cloudflare
 
+    double-take:
+      rule: "Host(`dt.uptonx.com`)"
+      service: double-take
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    n8n-video:
+      rule: "Host(`n8n.uptonx.com`)"
+      service: n8n-video
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    compreface:
+      rule: "Host(`faces.uptonx.com`)"
+      service: compreface
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   middlewares:
     allow-iframe:
       headers:
@@ -141,3 +165,18 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.23:3002"
+
+    double-take:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.69:3000"
+
+    n8n-video:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.69:5678"
+
+    compreface:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.69:8000"
