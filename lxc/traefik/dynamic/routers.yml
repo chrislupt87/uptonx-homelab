@@ -64,6 +64,33 @@ http:
       tls:
         certResolver: cloudflare
 
+    status:
+      rule: "Host(`status.uptonx.com`)"
+      service: status
+      middlewares:
+        - allow-iframe
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    grafana:
+      rule: "Host(`grafana.uptonx.com`)"
+      service: grafana
+      middlewares:
+        - allow-iframe
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+  middlewares:
+    allow-iframe:
+      headers:
+        customResponseHeaders:
+          X-Frame-Options: ""
+          Content-Security-Policy: ""
+
   services:
     technitium:
       loadBalancer:
@@ -104,3 +131,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.23:8092"
+
+    status:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.23:3001"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.23:3002"
