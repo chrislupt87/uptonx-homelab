@@ -25,7 +25,7 @@ import pyloudnorm as pyln
 from db import init_db, save_job, update_job_processing, update_job_transcript, get_job, list_jobs
 
 from starlette.formparsers import MultiPartParser
-MultiPartParser.max_file_size = 200 * 1024 * 1024  # 200 MB
+MultiPartParser.max_file_size = 0  # unlimited
 
 app = FastAPI(title="UptonX Forensic Audio Pipeline", version="2.1")
 
@@ -36,7 +36,6 @@ app.add_middleware(CORSMiddleware,
 TMP = Path("/tmp/audio")
 TMP.mkdir(parents=True, exist_ok=True)
 
-MAX_MB = int(os.getenv("MAX_UPLOAD_MB", 150))
 LUFS_TARGET = float(os.getenv("LUFS_TARGET", -16))
 
 # Initialize SQLite on startup
@@ -125,9 +124,6 @@ def _models_loaded():
 
 @app.post("/api/analyze")
 async def analyze(file: UploadFile = File(...)):
-    if file.size and file.size > MAX_MB * 1024 * 1024:
-        raise HTTPException(413, f"File exceeds {MAX_MB}MB limit")
-
     job_id = str(uuid.uuid4())[:8]
     tmp_path = TMP / f"raw_{job_id}{Path(file.filename).suffix}"
 
