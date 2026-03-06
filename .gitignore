@@ -10,3 +10,6 @@ Thumbs.db
 *.swp
 *.local.yml
 docker-compose.override.yml
+node_modules/
+*/dist/
+package-lock.json
