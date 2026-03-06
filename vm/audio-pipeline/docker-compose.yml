@@ -1,0 +1,51 @@
+services:
+
+  audio_api:
+    image: audio-pipeline-api:latest
+    container_name: audio_api
+    restart: unless-stopped
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
+    networks:
+      - audio_internal
+    ports:
+      - "8000:8000"
+    volumes:
+      - audio_models:/root/.cache/huggingface
+      - audio_tmp:/tmp/audio
+      - audio_data:/data
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=cpu
+      - WHISPER_COMPUTE_TYPE=int8
+      - DEEPFILTER_ENABLED=true
+      - MAX_UPLOAD_MB=150
+      - LUFS_TARGET=-16
+      - HF_TOKEN=${HF_TOKEN:-}
+      - AUDIO_DB_PATH=/data/audio_pipeline.db
+    mem_limit: 8g
+    cpus: 6
+
+  audio_frontend:
+    image: audio-pipeline-frontend:latest
+    container_name: audio_frontend
+    restart: unless-stopped
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
+    networks:
+      - audio_internal
+    ports:
+      - "8090:80"
+    depends_on:
+      - audio_api
+
+networks:
+  audio_internal:
+
+volumes:
+  audio_models:
+  audio_tmp:
+  audio_data:
