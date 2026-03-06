@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from email_rag.db.schema import (
     get_db, Email, RawMessage, Snippet, Finding,
     SenderStats, Timeline, ClaimLog, Snapshot,
-    UserFact, SuggestedQuestion,
+    UserFact, SuggestedQuestion, Anomaly,
 )
 from email_rag.analysis.claude_query import query_claude, query_local
 
@@ -46,6 +46,8 @@ def get_stats(db: Session = Depends(get_db)):
         SuggestedQuestion.status == "pending"
     ).scalar()
 
+    anomaly_count = db.query(func.count(Anomaly.id)).filter(Anomaly.status == "open").scalar()
+
     # Ollama status
     ollama_status = "unknown"
     try:
@@ -73,6 +75,7 @@ def get_stats(db: Session = Depends(get_db)):
         "ollama": ollama_status,
         "facts": fact_count,
         "pending_questions": pending_questions,
+        "anomalies": anomaly_count,
     }
 
 
@@ -212,6 +215,54 @@ def ask_question(payload: dict):
         return query_local(question, model=model)
 
 
+## -- Anomalies --
+
+@app.get("/api/anomalies")
+def list_anomalies(
+    severity: str = Query(None),
+    anomaly_type: str = Query(None),
+    status: str = Query("open"),
+    limit: int = Query(50, le=200),
+    db: Session = Depends(get_db),
+):
+    """List detected anomalies."""
+    q = db.query(Anomaly).order_by(
+        text("CASE severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END"),
+        Anomaly.created_at.desc(),
+    )
+    if severity:
+        q = q.filter(Anomaly.severity == severity)
+    if anomaly_type:
+        q = q.filter(Anomaly.anomaly_type == anomaly_type)
+    if status:
+        q = q.filter(Anomaly.status == status)
+    return [
+        {
+            "id": a.id,
+            "thread_id": a.thread_id,
+            "email_id": a.email_id,
+            "type": a.anomaly_type,
+            "severity": a.severity,
+            "title": a.title,
+            "detail": a.detail,
+            "status": a.status,
+            "created_at": str(a.created_at),
+        }
+        for a in q.limit(limit).all()
+    ]
+
+
+@app.post("/api/anomalies/{anomaly_id}/dismiss")
+def dismiss_anomaly(anomaly_id: int, db: Session = Depends(get_db)):
+    """Dismiss an anomaly."""
+    a = db.query(Anomaly).filter(Anomaly.id == anomaly_id).first()
+    if not a:
+        return {"error": "Anomaly not found"}
+    a.status = "dismissed"
+    db.commit()
+    return {"id": a.id, "status": "dismissed"}
+
+
 ## -- Facts CRUD --
 
 @app.get("/api/facts")
@@ -294,12 +345,39 @@ def list_questions(
             "source_type": sq.source_type,
             "source_email_ids": sq.source_email_ids,
             "status": sq.status,
+            "suggested_answer": sq.suggested_answer,
+            "suggested_category": sq.suggested_category,
+            "suggested_subject": sq.suggested_subject,
             "answer_text": sq.answer_text,
             "created_at": str(sq.created_at),
             "answered_at": str(sq.answered_at) if sq.answered_at else None,
         }
         for sq in q.limit(limit).all()
     ]
+
+
+@app.post("/api/questions/{question_id}/confirm")
+def confirm_question(question_id: int, payload: dict = None, db: Session = Depends(get_db)):
+    """Confirm AI-suggested answer, optionally with edits. Always saves as fact."""
+    sq = db.query(SuggestedQuestion).filter(SuggestedQuestion.id == question_id).first()
+    if not sq:
+        return {"error": "Question not found"}
+
+    payload = payload or {}
+    answer = payload.get("answer", sq.suggested_answer or "")
+    category = payload.get("category", sq.suggested_category or "context")
+    subject = payload.get("subject", sq.suggested_subject or "")
+
+    sq.answer_text = answer
+    sq.status = "answered"
+    sq.answered_at = func.now()
+
+    fact = UserFact(category=category, subject=subject, content=answer)
+    db.add(fact)
+    db.flush()
+
+    db.commit()
+    return {"id": sq.id, "status": "answered", "fact_id": fact.id}
 
 
 @app.post("/api/questions/{question_id}/answer")

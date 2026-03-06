@@ -231,6 +231,45 @@
         .source-tag.entity { background: #2a1a4a; color: #b388ff; }
         .source-tag.gap { background: #4a3a1a; color: #ffb74d; }
         .source-tag.analysis { background: #1a2a4a; color: #64b5f6; }
+        .question-item .q-suggested {
+            background: #0e1a0e; border: 1px solid #1a4a2e; border-radius: 6px;
+            padding: 10px 12px; margin: 8px 0; font-size: 13px; color: #a5d6a7;
+        }
+        .question-item .q-suggested-label {
+            font-size: 11px; color: #66bb6a; font-weight: 600;
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+        .btn-confirm { background: #1a4a2e; color: #66bb6a; }
+        .btn-confirm:active { background: #2a6a4e; }
+        .btn-edit { background: #1a2a4a; color: #64b5f6; }
+        .btn-edit:active { background: #2a3a5a; }
+
+        /* Timeline */
+        .timeline-view { position: relative; padding-left: 24px; }
+        .timeline-view::before {
+            content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+            width: 2px; background: #2a2a4a;
+        }
+        .timeline-event {
+            position: relative; margin-bottom: 16px; padding: 12px 14px;
+            background: #1a1a2e; border-radius: 8px;
+            border-left: 3px solid #7c83ff;
+        }
+        .timeline-event::before {
+            content: ''; position: absolute; left: -22px; top: 16px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #7c83ff; border: 2px solid #0a0a0f;
+        }
+        .timeline-event .te-date {
+            font-size: 12px; color: #7c83ff; font-weight: 600; margin-bottom: 4px;
+        }
+        .timeline-event .te-type {
+            display: inline-block; padding: 1px 6px; border-radius: 4px;
+            font-size: 10px; font-weight: 600; margin-left: 8px;
+            background: #2a2a4a; color: #aaa;
+        }
+        .timeline-event .te-desc { font-size: 13px; margin-bottom: 4px; }
+        .timeline-event .te-people { font-size: 12px; color: #888; }
 
         /* Facts */
         .fact-form { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -321,6 +360,35 @@
         .modal .btn-cancel { background: #2a2a4a; color: #aaa; }
         .modal .btn-cancel:active { background: #3a3a5a; }
 
+        /* Anomalies */
+        .anomaly-item {
+            padding: 14px; margin-bottom: 10px;
+            background: #1a1a2e; border-radius: 8px;
+        }
+        .anomaly-item.severity-high { border-left: 4px solid #f44336; }
+        .anomaly-item.severity-medium { border-left: 4px solid #ff9800; }
+        .anomaly-item.severity-low { border-left: 4px solid #4caf50; }
+        .anomaly-item .a-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .anomaly-item .a-detail { font-size: 12px; color: #aaa; margin-bottom: 8px; line-height: 1.5; }
+        .anomaly-item .a-meta { display: flex; gap: 8px; align-items: center; }
+        .severity-tag {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .severity-tag.high { background: #4a1a1a; color: #f44336; }
+        .severity-tag.medium { background: #4a3a1a; color: #ff9800; }
+        .severity-tag.low { background: #1a4a1a; color: #4caf50; }
+        .type-tag {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: 600; background: #2a2a4a; color: #aaa;
+        }
+        .anomaly-item .btn-dismiss-sm {
+            margin-left: auto; background: #2a2a4a; border: none; color: #888;
+            padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+            min-height: 32px;
+        }
+        .anomaly-item .btn-dismiss-sm:active { background: #3a3a5a; }
+
         /* Two-column layout for wider screens */
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
@@ -343,6 +411,8 @@
     <div class="tabs">
         <div class="tab active" data-tab="query">Ask</div>
         <div class="tab" data-tab="questions">Questions <span class="badge" id="q-badge" style="display:none">0</span></div>
+        <div class="tab" data-tab="timeline">Timeline</div>
+        <div class="tab" data-tab="anomalies">Anomalies <span class="badge" id="a-badge" style="display:none">0</span></div>
         <div class="tab" data-tab="findings">Findings</div>
         <div class="tab" data-tab="facts">Knowledge</div>
         <div class="tab" data-tab="emails">Emails</div>
@@ -368,6 +438,22 @@
             <div class="panel">
                 <h2>Pending Questions</h2>
                 <div id="questions-list"></div>
+            </div>
+        </div>
+
+        <!-- Timeline tab -->
+        <div class="tab-content" id="tab-timeline">
+            <div class="panel">
+                <h2>Event Timeline</h2>
+                <div class="timeline-view" id="timeline-list"></div>
+            </div>
+        </div>
+
+        <!-- Anomalies tab -->
+        <div class="tab-content" id="tab-anomalies">
+            <div class="panel">
+                <h2>Anomaly Detector</h2>
+                <div id="anomalies-list"></div>
             </div>
         </div>
 
@@ -415,10 +501,10 @@
         </div>
     </div>
 
-    <!-- Answer modal -->
+    <!-- Answer/Edit modal -->
     <div class="modal-overlay" id="answer-modal">
         <div class="modal">
-            <h3>Answer Question</h3>
+            <h3 id="modal-title">Edit Answer</h3>
             <div class="q-display">
                 <div id="modal-question"></div>
                 <div class="ctx" id="modal-context"></div>
@@ -426,7 +512,7 @@
             <textarea id="modal-answer" placeholder="Your answer..."
                       onfocus="showKeyboard('modal-answer')" readonly></textarea>
             <div class="fact-options">
-                <label><input type="checkbox" id="modal-save-fact"> Save as fact</label>
+                <span style="font-size:13px;color:#aaa">Save as fact:</span>
                 <select id="modal-fact-category">
                     <option value="person">Person</option>
                     <option value="relationship">Relationship</option>
@@ -439,7 +525,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-                <button class="btn-submit" onclick="submitAnswer()">Submit</button>
+                <button class="btn-submit" onclick="submitEditedAnswer()">Save &amp; Confirm</button>
             </div>
         </div>
     </div>
@@ -603,6 +689,15 @@
                     badge.style.display = 'none';
                 }
 
+                // Update anomalies badge
+                const aBadge = document.getElementById('a-badge');
+                if (d.anomalies > 0) {
+                    aBadge.textContent = d.anomalies;
+                    aBadge.style.display = 'inline';
+                } else {
+                    aBadge.style.display = 'none';
+                }
+
                 // Full stats grid
                 const grid = document.getElementById('stats-grid');
                 const stats = [
@@ -615,6 +710,7 @@
                     { label: 'Priority', value: d.subject_priority },
                     { label: 'Facts', value: d.facts },
                     { label: 'Questions', value: d.pending_questions },
+                    { label: 'Anomalies', value: d.anomalies },
                     { label: 'Flagged', value: d.flagged },
                     { label: 'Unread', value: d.unread },
                     { label: 'Ollama', value: d.ollama },
@@ -758,31 +854,53 @@
             try {
                 const r = await fetch(`${API}/api/questions?status=pending&limit=20`);
                 const data = await r.json();
-                document.getElementById('questions-list').innerHTML = data.map(q =>
-                    `<div class="question-item">
+                document.getElementById('questions-list').innerHTML = data.map(q => {
+                    const qJson = JSON.stringify(q).replace(/'/g, '&#39;');
+                    return `<div class="question-item">
                         <div class="q-text">
                             <span class="source-tag ${q.source_type}">${q.source_type}</span>
                             ${esc(q.question_text)}
                         </div>
                         ${q.context ? `<div class="q-context">${esc(q.context)}</div>` : ''}
+                        ${q.suggested_answer ? `<div class="q-suggested">
+                            <div class="q-suggested-label">AI Suggested Answer</div>
+                            ${esc(q.suggested_answer)}
+                        </div>` : ''}
                         <div class="q-actions">
-                            <button class="btn-answer" onclick='openAnswer(${q.id}, ${JSON.stringify(q.question_text)}, ${JSON.stringify(q.context || "")})'>Answer</button>
+                            ${q.suggested_answer ? `<button class="btn-confirm" onclick='confirmQuestion(${q.id})'>Confirm</button>` : ''}
+                            <button class="btn-edit" onclick='openEdit(${qJson})'>Edit</button>
                             <button class="btn-dismiss" onclick="dismissQuestion(${q.id})">Dismiss</button>
                         </div>
-                    </div>`
-                ).join('') || '<div style="color:#888;padding:12px">No pending questions. Run analysis to generate them.</div>';
+                    </div>`;
+                }).join('') || '<div style="color:#888;padding:12px">No pending questions. Run analysis to generate them.</div>';
             } catch (e) {
                 console.error('Questions error:', e);
             }
         }
 
-        function openAnswer(id, question, context) {
-            currentQuestionId = id;
-            document.getElementById('modal-question').textContent = question;
-            document.getElementById('modal-context').textContent = context;
-            document.getElementById('modal-answer').value = '';
-            document.getElementById('modal-save-fact').checked = false;
-            document.getElementById('modal-fact-subject').value = '';
+        async function confirmQuestion(id) {
+            try {
+                await fetch(`${API}/api/questions/${id}/confirm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}),
+                });
+                loadQuestions();
+                loadFacts();
+                loadStats();
+            } catch (e) {
+                console.error('Confirm error:', e);
+            }
+        }
+
+        function openEdit(q) {
+            currentQuestionId = q.id;
+            document.getElementById('modal-title').textContent = q.suggested_answer ? 'Edit Suggested Answer' : 'Answer Question';
+            document.getElementById('modal-question').textContent = q.question_text;
+            document.getElementById('modal-context').textContent = q.context || '';
+            document.getElementById('modal-answer').value = q.suggested_answer || '';
+            document.getElementById('modal-fact-category').value = q.suggested_category || 'context';
+            document.getElementById('modal-fact-subject').value = q.suggested_subject || '';
             document.getElementById('answer-modal').classList.add('active');
         }
 
@@ -792,20 +910,18 @@
             hideKeyboard();
         }
 
-        async function submitAnswer() {
+        async function submitEditedAnswer() {
             if (!currentQuestionId) return;
             const answer = document.getElementById('modal-answer').value.trim();
             if (!answer) return;
             hideKeyboard();
-            const saveAsFact = document.getElementById('modal-save-fact').checked;
-            const body = { answer };
-            if (saveAsFact) {
-                body.save_as_fact = true;
-                body.category = document.getElementById('modal-fact-category').value;
-                body.subject = document.getElementById('modal-fact-subject').value.trim() || 'Unknown';
-            }
+            const body = {
+                answer,
+                category: document.getElementById('modal-fact-category').value,
+                subject: document.getElementById('modal-fact-subject').value.trim() || 'Unknown',
+            };
             try {
-                await fetch(`${API}/api/questions/${currentQuestionId}/answer`, {
+                await fetch(`${API}/api/questions/${currentQuestionId}/confirm`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body),
@@ -829,6 +945,58 @@
             }
         }
 
+        // --- Timeline ---
+        async function loadTimeline() {
+            try {
+                const r = await fetch(`${API}/api/timeline?limit=50`);
+                const data = await r.json();
+                document.getElementById('timeline-list').innerHTML = data.map(t =>
+                    `<div class="timeline-event">
+                        <div class="te-date">
+                            ${t.date ? new Date(t.date).toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'}) : 'Unknown date'}
+                            <span class="te-type">${esc(t.type)}</span>
+                        </div>
+                        <div class="te-desc">${esc(t.description)}</div>
+                        ${t.participants && t.participants.length ? `<div class="te-people">${t.participants.map(p => esc(p)).join(', ')}</div>` : ''}
+                    </div>`
+                ).join('') || '<div style="color:#888;padding:12px">No timeline events yet. Run analysis to generate them.</div>';
+            } catch (e) {
+                console.error('Timeline error:', e);
+            }
+        }
+
+        // --- Anomalies ---
+        async function loadAnomalies() {
+            try {
+                const r = await fetch(`${API}/api/anomalies?limit=50`);
+                const data = await r.json();
+                document.getElementById('anomalies-list').innerHTML = data.map(a =>
+                    `<div class="anomaly-item severity-${a.severity}">
+                        <div class="a-title">${esc(a.title)}</div>
+                        <div class="a-detail">${esc(a.detail)}</div>
+                        <div class="a-meta">
+                            <span class="severity-tag ${a.severity}">${a.severity}</span>
+                            <span class="type-tag">${esc(a.type.replace('_', ' '))}</span>
+                            <span style="font-size:11px;color:#666">${new Date(a.created_at).toLocaleDateString()}</span>
+                            <button class="btn-dismiss-sm" onclick="dismissAnomaly(${a.id})">Dismiss</button>
+                        </div>
+                    </div>`
+                ).join('') || '<div style="color:#888;padding:12px">No anomalies detected. Run anomaly detection first.</div>';
+            } catch (e) {
+                console.error('Anomalies error:', e);
+            }
+        }
+
+        async function dismissAnomaly(id) {
+            try {
+                await fetch(`${API}/api/anomalies/${id}/dismiss`, { method: 'POST' });
+                loadAnomalies();
+                loadStats();
+            } catch (e) {
+                console.error('Dismiss anomaly error:', e);
+            }
+        }
+
         function esc(s) {
             if (!s) return '';
             const d = document.createElement('div');
@@ -848,7 +1016,9 @@
         loadEmails();
         loadFacts();
         loadQuestions();
-        setInterval(() => { loadStats(); loadFindings(); loadEmails(); loadFacts(); loadQuestions(); }, 30000);
+        loadTimeline();
+        loadAnomalies();
+        setInterval(() => { loadStats(); loadFindings(); loadEmails(); loadFacts(); loadQuestions(); loadTimeline(); loadAnomalies(); }, 30000);
     </script>
 </body>
 </html>

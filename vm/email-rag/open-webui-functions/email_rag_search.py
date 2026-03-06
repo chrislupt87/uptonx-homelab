@@ -243,6 +243,37 @@ class Tools:
 
         return json.dumps(questions, indent=2)
 
+    def get_anomalies(
+        self,
+        severity: str = "",
+        limit: int = 50,
+        __user__: dict = {},
+    ) -> str:
+        """
+        Get detected anomalies from the email corpus. Anomalies include header inconsistencies,
+        reply chain gaps, hidden/coded text, and authentication failures.
+
+        :param severity: Filter by severity: "high", "medium", "low", or empty for all.
+        :param limit: Max number of anomalies to return (default 50).
+        :return: JSON list of anomalies with type, severity, title, and detail.
+        """
+        params = [f"limit={limit}", "status=open"]
+        if severity:
+            params.append(f"severity={severity}")
+        url = f"{EMAIL_RAG_BASE}/api/anomalies?{'&'.join(params)}"
+
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                anomalies = json.loads(resp.read().decode())
+        except Exception as e:
+            return json.dumps({"error": f"Failed to fetch anomalies: {e}"})
+
+        if not anomalies:
+            return json.dumps({"message": "No anomalies detected."})
+
+        return json.dumps(anomalies, indent=2)
+
     def answer_question(
         self,
         question_id: int,

@@ -81,6 +81,13 @@ def analyze():
     run_deep_analysis()
 
 
+@cli.command("detect-anomalies")
+def detect_anomalies():
+    """Scan emails for header inconsistencies, reply chain gaps, and hidden text."""
+    from email_rag.analysis.anomaly_detector import run_anomaly_detection
+    run_anomaly_detection()
+
+
 @cli.command("backfill-metadata")
 def backfill_metadata():
     """Re-parse raw_messages to populate metadata columns on existing emails."""

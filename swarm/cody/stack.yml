@@ -16,6 +16,7 @@ services:
         - "traefik.http.routers.cody.entrypoints=websecure"
         - "traefik.http.routers.cody.tls.certresolver=cloudflare"
         - "traefik.http.services.cody.loadbalancer.server.port=80"
+        - "traefik.docker.network=proxy"
 
 configs:
   index:

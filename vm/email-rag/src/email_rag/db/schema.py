@@ -183,6 +183,20 @@ class Snapshot(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Anomaly(Base):
+    __tablename__ = "anomalies"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    thread_id = Column(Text)
+    email_id = Column(BigInteger, ForeignKey("emails.id"))
+    anomaly_type = Column(Text, nullable=False)
+    severity = Column(Text, nullable=False, default="medium")
+    title = Column(Text, nullable=False)
+    detail = Column(Text)
+    status = Column(Text, default="open")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class UserFact(Base):
     __tablename__ = "user_facts"
 
@@ -203,6 +217,9 @@ class SuggestedQuestion(Base):
     source_type = Column(Text, nullable=False)
     source_email_ids = Column(JSONB)
     status = Column(Text, nullable=False, default="pending")
+    suggested_answer = Column(Text)
+    suggested_category = Column(Text)
+    suggested_subject = Column(Text)
     answer_text = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     answered_at = Column(DateTime(timezone=True))

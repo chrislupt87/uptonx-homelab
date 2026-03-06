@@ -28,6 +28,11 @@ providers:
   file:
     directory: /etc/traefik/dynamic
     watch: true
+  docker:
+    endpoint: "tcp://192.168.1.23:2375"
+    swarmMode: true
+    exposedByDefault: false
+    network: proxy
 
 log:
   level: INFO

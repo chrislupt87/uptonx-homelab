@@ -6,7 +6,7 @@ import httpx
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from email_rag.db.schema import SessionLocal, Email, Finding, ClaimLog, UserFact, SuggestedQuestion
+from email_rag.db.schema import SessionLocal, Email, Finding, ClaimLog, Timeline, UserFact, SuggestedQuestion
 
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://localhost:11434")
 OLLAMA_GPU_BASE = os.environ.get("OLLAMA_GPU_BASE", "http://192.168.1.95:11434")
@@ -19,14 +19,28 @@ VALID_CLAIM_TYPES = {"factual", "promise", "opinion"}
 ANALYSIS_PROMPT = """Analyze this email thread and extract:
 1. Key claims or assertions made by each party
 2. Any contradictions with known facts
-3. Timeline events with dates
+3. Discrete real-world events with specific dates (NOT "email sent" — only actual events like visits, birthdays, court dates, incidents, trips, breakdowns, moves, etc.)
 4. Behavioral patterns (tone shifts, evasion, promises)
-5. Questions about unknowns — people, places, or gaps that need clarification
+5. Questions about unknowns — ONLY factual questions that can be answered with concrete information
 
 For each finding, classify the grounding as ONE of: grounded, inferred, speculative.
 For each finding type, pick ONE of: pattern, contradiction, timeline_gap, behavioral.
 For each claim type, pick ONE of: factual, promise, opinion.
-For each question, classify source_type as ONE of: entity (unknown person/place), gap (missing timeline info), analysis (deeper insight needed).
+For each question:
+- ONLY ask factual questions — who is someone, what is a place, what happened on a date, did an event occur
+- NEVER ask subjective or behavioral questions like "why did X change their tone" or "what motivated X"
+- Good examples: "Who is Marc?", "What city was visited?", "Did Cody come over on March 1st?"
+- Bad examples: "Why did the tone shift?", "What was the motivation behind X?"
+- classify source_type as ONE of: entity (unknown person/place), gap (missing timeline info), analysis (deeper insight needed)
+- provide context explaining WHY this question matters for understanding the situation
+- provide your best guess answer based on clues in the emails
+- suggest a category (person, relationship, place, event, context) and short subject label for storing the answer as a fact
+
+For timeline_events:
+- ONLY include discrete real-world events: visits, birthdays, court dates, car breakdowns, moves, trips, medical appointments, school events
+- DO NOT include "email sent" or "communication" events — only things that happened in the real world
+- Each event MUST have a specific date (YYYY-MM-DD) extracted from the email content. If no date, skip it.
+- Types: visit, birthday, court, incident, trip, appointment, milestone, other
 {background_knowledge}
 Email thread:
 {thread_text}
@@ -39,8 +53,11 @@ Respond in JSON format:
     "findings": [
         {{"title": "...", "summary": "...", "type": "pattern", "grounding": "grounded", "confidence": 0.8}}
     ],
+    "timeline_events": [
+        {{"date": "2025-01-15", "type": "visit", "description": "Cody visited Chris for the weekend", "participants": ["Chris", "Cody"]}}
+    ],
     "questions": [
-        {{"question": "...", "context": "Why this matters", "source_type": "entity"}}
+        {{"question": "...", "context": "Why this matters for understanding the situation", "source_type": "entity", "suggested_answer": "Best guess based on email clues", "suggested_category": "person", "suggested_subject": "Short label"}}
     ]
 }}"""
 
@@ -172,6 +189,27 @@ def analyze_thread(thread_id: str, db: Session):
             )
             db.add(finding)
 
+        # Store timeline events
+        for event_data in result.get("timeline_events", []):
+            if not isinstance(event_data, dict) or "description" not in event_data:
+                continue
+            event_date = None
+            if event_data.get("date"):
+                try:
+                    from dateutil.parser import parse as parse_date
+                    event_date = parse_date(event_data["date"])
+                except Exception:
+                    pass
+            te = Timeline(
+                raw_id=raw_ids[0],
+                email_id=emails[0].id,
+                event_date=event_date,
+                event_type=event_data.get("type", "event")[:100],
+                description=event_data.get("description", "")[:2000],
+                participants=event_data.get("participants"),
+            )
+            db.add(te)
+
         # Store questions (dedup against existing pending)
         existing_questions = set(
             q[0] for q in db.query(SuggestedQuestion.question_text)
@@ -194,6 +232,9 @@ def analyze_thread(thread_id: str, db: Session):
                 source_type=source_type,
                 source_email_ids=raw_ids,
                 status="pending",
+                suggested_answer=q_data.get("suggested_answer"),
+                suggested_category=q_data.get("suggested_category"),
+                suggested_subject=q_data.get("suggested_subject"),
             )
             db.add(sq)
             existing_questions.add(q_text)
