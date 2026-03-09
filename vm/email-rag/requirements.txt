@@ -11,3 +11,4 @@ anthropic
 httpx
 python-multipart
 jinja2
+mcp

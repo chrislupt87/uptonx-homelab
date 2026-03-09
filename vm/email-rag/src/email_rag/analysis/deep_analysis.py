@@ -39,8 +39,16 @@ For each question:
 For timeline_events:
 - ONLY include discrete real-world events: visits, birthdays, court dates, car breakdowns, moves, trips, medical appointments, school events
 - DO NOT include "email sent" or "communication" events — only things that happened in the real world
-- Each event MUST have a specific date (YYYY-MM-DD) extracted from the email content. If no date, skip it.
+- Each event MUST have a date (YYYY-MM-DD). You MUST infer dates using these techniques:
+  * Look at the email Date headers — they tell you WHEN the conversation happened
+  * If emails on Monday discuss plans to visit, then there's a communication gap, then emails on Thursday reference "when you came over" — the visit was likely Tue-Wed. Pick the most likely date.
+  * If someone says "I came over last night" in an email dated 2025-03-05, the visit was 2025-03-04
+  * If someone says "you came over on the weekend" in a Monday email, use the Saturday date
+  * If planning emails stop and resume days later referencing the visit, use the gap dates
+  * Use "confidence" field to indicate how certain the inferred date is (0.5 = rough estimate, 0.9 = very confident)
+  * ALWAYS provide your best estimate rather than omitting the event — an approximate date is far more valuable than no date
 - Types: visit, birthday, court, incident, trip, appointment, milestone, other
+- For visits specifically: look for patterns like planning → silence → aftermath to infer when the visit occurred
 {background_knowledge}
 Email thread:
 {thread_text}
@@ -189,9 +197,13 @@ def analyze_thread(thread_id: str, db: Session):
             )
             db.add(finding)
 
-        # Store timeline events
+        # Store timeline events — require dates (model should infer them)
         for event_data in result.get("timeline_events", []):
             if not isinstance(event_data, dict) or "description" not in event_data:
+                continue
+            # Skip generic filler entries
+            desc_lower = (event_data.get("description") or "").lower()
+            if any(skip in desc_lower for skip in ["email conversation", "email sent"]):
                 continue
             event_date = None
             if event_data.get("date"):
@@ -200,6 +212,10 @@ def analyze_thread(thread_id: str, db: Session):
                     event_date = parse_date(event_data["date"])
                 except Exception:
                     pass
+            # No date at all — skip (the model should be inferring dates now)
+            if event_date is None:
+                continue
+            confidence = min(max(float(event_data.get("confidence", 0.5)), 0.0), 1.0)
             te = Timeline(
                 raw_id=raw_ids[0],
                 email_id=emails[0].id,
