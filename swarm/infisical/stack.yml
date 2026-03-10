@@ -7,21 +7,16 @@ services:
       NODE_ENV: production
       ENCRYPTION_KEY: "${INFISICAL_ENCRYPTION_KEY}"
       AUTH_SECRET: "${INFISICAL_AUTH_SECRET}"
-      DB_CONNECTION_URI: "postgresql://infisical:${INFISICAL_POSTGRES_PASSWORD}@postgres:5432/infisical"
+      DB_CONNECTION_URI: "postgresql://infisical:${INFISICAL_POSTGRES_PASSWORD}@postgres:5432/infisical?sslmode=disable"
       REDIS_URL: "redis://redis:6379"
       SITE_URL: "https://infisical.uptonx.com"
-    networks:
-      - proxy
-      - internal
+    ports:
+      - "8093:8080"
     deploy:
       replicas: 1
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.infisical.rule=Host(`infisical.uptonx.com`)"
-        - "traefik.http.routers.infisical.entrypoints=websecure"
-        - "traefik.http.routers.infisical.tls.certresolver=cloudflare"
-        - "traefik.http.services.infisical.loadbalancer.server.port=8080"
-        - "traefik.docker.network=proxy"
+      placement:
+        constraints:
+          - node.hostname == ai
 
   postgres:
     image: postgres:16-alpine
@@ -31,23 +26,16 @@ services:
       POSTGRES_DB: infisical
     volumes:
       - /opt/infisical/postgres:/var/lib/postgresql/data
-    networks:
-      - internal
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.host == helm
+          - node.hostname == ai
 
   redis:
     image: redis:7-alpine
-    networks:
-      - internal
     deploy:
       replicas: 1
-
-networks:
-  proxy:
-    external: true
-  internal:
-    external: true
+      placement:
+        constraints:
+          - node.hostname == ai

@@ -108,6 +108,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    infisical:
+      rule: "Host(`infisical.uptonx.com`)"
+      service: infisical
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   middlewares:
     allow-iframe:
       headers:
@@ -180,3 +188,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.69:8000"
+
+    infisical:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.69:8093"
