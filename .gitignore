@@ -13,3 +13,4 @@ docker-compose.override.yml
 node_modules/
 */dist/
 package-lock.json
+tools/venv-voice-clean/

@@ -10,8 +10,11 @@ services:
       - /etc/frigate:/config
       - /media/frigate:/media/frigate
       - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
     environment:
       FRIGATE_RTSP_PASSWORD: "changeme"
+      GO2RTC_ALLOW_ARBITRARY_EXEC: "true"
     mem_limit: 6g
     cpus: "6"
     depends_on:
@@ -27,3 +30,38 @@ services:
       - /opt/frigate/mosquitto/config:/mosquitto/config
       - /opt/frigate/mosquitto/data:/mosquitto/data
       - /opt/frigate/mosquitto/log:/mosquitto/log
+
+  eufy-security-ws:
+    container_name: eufy-security-ws
+    image: bropat/eufy-security-ws:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      USERNAME: "chrislupt87@gmail.com"
+      PASSWORD: "Cody198787!"
+      COUNTRY: "CA"
+      LANGUAGE: "en"
+      PORT: "3100"
+    volumes:
+      - /opt/frigate/eufy-data:/data
+
+  eufy-bridge:
+    container_name: eufy-bridge
+    image: python:3.11-slim
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    working_dir: /app
+    command: >
+      sh -c "pip install -q websockets &&
+             python eufy_bridge.py"
+    volumes:
+      - /opt/frigate/eufy-bridge:/app
+    environment:
+      EUFY_WS_URL: "ws://127.0.0.1:3100"
+      BASE_PORT: "63336"
+      CAMERA_SERIALS: "T8600P1023450946,T8600P10234314D7,T8600P1023432659"
+      STREAM_TIMEOUT: "30"
+    depends_on:
+      eufy-security-ws:
+        condition: service_started
