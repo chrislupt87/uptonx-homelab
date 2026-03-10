@@ -57,7 +57,12 @@ semantic_search:
   model_size: large
 face_recognition:
   enabled: true
-  min_area: 2500
+  min_area: 1500
+  detection_threshold: 0.5
+  recognition_threshold: 0.7
+  unknown_score: 0.7
+  save_attempts: 200
+  blur_confidence_filter: true
 objects:
   track:
   - person

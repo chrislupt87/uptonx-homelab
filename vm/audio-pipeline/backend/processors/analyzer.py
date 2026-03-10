@@ -5,8 +5,14 @@ import soundfile as sf
 
 def extract_features(audio_path: str) -> dict:
     # Get original channel count from file metadata
-    info = sf.info(audio_path)
-    channels = info.channels
+    # sf.info doesn't support m4a/aac, so fall back to librosa
+    try:
+        info = sf.info(audio_path)
+        channels = info.channels
+    except Exception:
+        y_raw, _ = librosa.load(audio_path, sr=None, mono=False)
+        channels = 1 if y_raw.ndim == 1 else y_raw.shape[0]
+        del y_raw
 
     # Load as mono 16kHz for analysis
     audio, sr = librosa.load(audio_path, sr=16000, mono=True)

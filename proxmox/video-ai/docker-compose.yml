@@ -122,7 +122,9 @@ services:
     environment:
       MQTT_HOST: 192.168.1.18
       FRIGATE_URL: http://192.168.1.18:5000
-      COMPREFACE_URL: http://compreface:8000
+      COMPREFACE_URL: http://compreface:80
       COMPREFACE_API_KEY: ${COMPREFACE_API_KEY:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    env_file:
+    - .env
