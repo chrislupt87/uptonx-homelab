@@ -1,0 +1,33 @@
+[
+  { "keys": ["ctrl+shift+d"], "command": "duplicate_line" },
+  { "keys": ["ctrl+alt+up"], "command": "swap_line_up" },
+  { "keys": ["ctrl+alt+down"], "command": "swap_line_down" },
+
+  { "keys": ["ctrl+d"], "command": "find_under_expand" },
+  { "keys": ["ctrl+shift+l"], "command": "split_selection_into_lines" },
+  { "keys": ["alt+f3"], "command": "find_all_under" },
+
+  { "keys": ["ctrl+shift+enter"], "command": "run_macro_file", "args": { "file": "res://Packages/Default/Add Line Before.sublime-macro" } },
+  { "keys": ["ctrl+enter"], "command": "run_macro_file", "args": { "file": "res://Packages/Default/Add Line.sublime-macro" } },
+
+  { "keys": ["ctrl+/"], "command": "toggle_comment", "args": { "block": false } },
+  { "keys": ["ctrl+shift+/"], "command": "toggle_comment", "args": { "block": true } },
+
+  { "keys": ["alt+q"], "command": "wrap_lines" },
+  { "keys": ["ctrl+shift+k"], "command": "delete_line" },
+
+  { "keys": ["ctrl+alt+f"], "command": "show_panel", "args": { "panel": "replace" } },
+  { "keys": ["ctrl+shift+p"], "command": "show_overlay", "args": { "overlay": "command_palette" } },
+
+  { "keys": ["ctrl+p"], "command": "show_overlay", "args": { "overlay": "goto", "show_files": true } },
+  { "keys": ["ctrl+r"], "command": "show_overlay", "args": { "overlay": "goto", "text": "@" } },
+  { "keys": ["ctrl+;"], "command": "show_overlay", "args": { "overlay": "goto", "text": "#" } },
+
+  { "keys": ["ctrl+shift+["], "command": "fold" },
+  { "keys": ["ctrl+shift+]"], "command": "unfold" },
+  { "keys": ["ctrl+k", "ctrl+0"], "command": "unfold_all" },
+
+  { "keys": ["ctrl+alt+1"], "command": "set_layout", "args": { "cols": [0.0, 1.0], "rows": [0.0, 1.0], "cells": [[0, 0, 1, 1]] } },
+  { "keys": ["ctrl+alt+2"], "command": "set_layout", "args": { "cols": [0.0, 0.5, 1.0], "rows": [0.0, 1.0], "cells": [[0, 0, 1, 1], [1, 0, 2, 1]] } },
+  { "keys": ["ctrl+alt+3"], "command": "set_layout", "args": { "cols": [0.0, 0.33, 0.66, 1.0], "rows": [0.0, 1.0], "cells": [[0, 0, 1, 1], [1, 0, 2, 1], [2, 0, 3, 1]] } }
+]

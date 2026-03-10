@@ -1,0 +1,82 @@
+{
+  "always_show_minimap_viewport": true,
+  "auto_complete": true,
+  "auto_complete_commit_on_tab": true,
+  "auto_complete_delay": 50,
+  "auto_complete_selector": "source - comment, meta.tag - punctuation.definition.tag.begin",
+  "bold_folder_labels": true,
+  "caret_extra_bottom": 2,
+  "caret_extra_top": 2,
+  "caret_style": "smooth",
+  "close_windows_when_empty": false,
+  "color_scheme": "Catppuccin Mocha.sublime-color-scheme",
+  "default_encoding": "UTF-8",
+  "detect_indentation": true,
+  "drag_text": true,
+  "draw_white_space": "selection",
+  "ensure_newline_at_eof_on_save": true,
+  "fade_fold_buttons": false,
+  "file_exclude_patterns":
+  [
+    "*.pyc",
+    "*.pyo",
+    "*.DS_Store",
+    ".coverage",
+    "Thumbs.db",
+    "*.log"
+  ],
+  "folder_exclude_patterns":
+  [
+    ".git",
+    ".idea",
+    ".vscode",
+    "__pycache__",
+    "node_modules",
+    "venv",
+    ".venv",
+    "dist",
+    "build"
+  ],
+  "font_face": "JetBrains Mono",
+  "font_size": 14,
+  "gpu_window_buffer": false,
+  "highlight_line": true,
+  "highlight_modified_tabs": true,
+  "hot_exit": true,
+  "ignored_packages":
+  [
+    "Vintage"
+  ],
+  "index_files": true,
+  "line_numbers": true,
+  "line_padding_bottom": 1,
+  "line_padding_top": 1,
+  "margin": 2,
+  "mini_diff": true,
+  "open_files_in_new_window": false,
+  "overlay_scroll_bars": "enabled",
+  "preview_on_click": false,
+  "remember_open_files": true,
+  "rulers":
+  [
+    100
+  ],
+  "save_on_focus_lost": true,
+  "scroll_past_end": true,
+  "show_definitions": true,
+  "show_encoding": true,
+  "show_full_path": true,
+  "show_line_endings": true,
+  "show_tab_close_buttons": true,
+  "show_tab_close_buttons_on_hover": true,
+  "side_bar_tree_headings": true,
+  "tab_size": 4,
+  "theme": "Adaptive.sublime-theme",
+  "translate_tabs_to_spaces": true,
+  "trim_automatic_white_space": true,
+  "trim_trailing_white_space_on_save": true,
+  "update_check": false,
+  "use_tab_stops": true,
+  "word_wrap": true,
+  "wrap_width": 120
+}
