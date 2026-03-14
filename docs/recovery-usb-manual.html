@@ -440,7 +440,7 @@ tr:nth-child(even) td {
     </p>
     <div class="warning-badge">Keep Two Copies — One Offsite</div>
     <p class="version">
-      Version 1.0 &mdash; March 2026<br>
+      Version 1.1 &mdash; March 2026<br>
       Generated from uptonx-homelab repository
     </p>
   </div>
@@ -472,6 +472,10 @@ tr:nth-child(even) td {
   <div class="toc-entry toc-sub">Frigate NVR Crashed</div>
   <div class="toc-entry toc-sub">NAS Unreachable</div>
   <div class="toc-entry toc-sub">Email RAG VM Corrupted</div>
+  <div class="toc-entry toc-sub">Video AI Stack Down</div>
+  <div class="toc-entry toc-sub">Audio Pipeline Down</div>
+  <div class="toc-entry toc-sub">Infisical Down</div>
+  <div class="toc-entry toc-sub">Home Assistant Down</div>
   <div class="toc-entry toc-sub">Network Misconfiguration</div>
   <div class="toc-entry toc-sub">Full Power Loss / Cold Boot</div>
 
@@ -486,6 +490,12 @@ tr:nth-child(even) td {
   <div class="toc-entry toc-sub">Updating ISOs</div>
   <div class="toc-entry toc-sub">Syncing Scripts from Gitea</div>
   <div class="toc-entry toc-sub">Labeling and Storage</div>
+
+  <div class="toc-entry toc-section">Section 7 &mdash; PBS Backup &amp; Restore</div>
+  <div class="toc-entry toc-sub">Backup Architecture</div>
+  <div class="toc-entry toc-sub">Restoring VMs &amp; CTs from PBS</div>
+  <div class="toc-entry toc-sub">Docker Volume Backup Recovery</div>
+  <div class="toc-entry toc-sub">Backup Verification</div>
 </div>
 
 <!-- ==================== SECTION 1 ==================== -->
@@ -633,7 +643,12 @@ UPTONX-RECOVERY (FAT32)<br>
 ├── scripts/<br>
 │   ├── proxmox/<br>
 │   │   ├── rejoin-swarm-worker.sh<br>
-│   │   └── restore-lxc-config.sh<br>
+│   │   ├── restore-lxc-config.sh<br>
+│   │   ├── restore-from-pbs.sh<br>
+│   │   ├── check-backups.sh<br>
+│   │   ├── restore-video-ai.sh<br>
+│   │   ├── restore-audio-pipeline.sh<br>
+│   │   └── restore-infisical.sh<br>
 │   ├── swarm/<br>
 │   │   ├── redeploy-all.sh<br>
 │   │   └── check-health.sh<br>
@@ -911,6 +926,106 @@ set -euo pipefail
 #   3. Recreate /opt/secrets/swarm.env
 #   4. Redeploy all stacks
 #   5. Restart Traefik on CT 102 (.15)</code></pre>
+
+<h3>proxmox/restore-from-pbs.sh</h3>
+<p>Restore a VM or CT from Proxmox Backup Server (.19). Lists available backups, lets you pick a specific date or latest, handles stop/restore/start.</p>
+<p><strong>Usage:</strong> <code>./restore-from-pbs.sh &lt;host-ip&gt; &lt;vmid&gt; [snapshot-date]</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Examples:
+#   ./restore-from-pbs.sh 192.168.1.69 401         # Email RAG VM (latest)
+#   ./restore-from-pbs.sh 192.168.1.18 106         # Swarm manager CT (latest)
+#   ./restore-from-pbs.sh 192.168.1.69 401 2026-03-10  # Specific date
+#
+# Steps:
+#   1. Verify PBS (.19) and Proxmox host are reachable
+#   2. List available backups for the VMID
+#   3. Select latest or date-specific backup
+#   4. Stop running VM/CT if needed (interactive confirm)
+#   5. Restore from PBS (qmrestore or pct restore --force)
+#   6. Start the restored VM/CT</code></pre>
+
+<h3>proxmox/check-backups.sh</h3>
+<p>Verify PBS backups exist and are recent for all VMs/CTs across all Proxmox hosts. Also checks NAS-based Docker volume backups.</p>
+<p><strong>Usage:</strong> <code>./check-backups.sh</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Checks:
+#   1. PBS (.19) reachability
+#   2. Latest backup per VMID on each Proxmox host
+#   3. Age indicator: ✓ (&lt;26h), ⚠ (&lt;72h), ✗ (older)
+#   4. NAS Docker volume backup directories
+#
+# Backup schedule reference:
+#   02:00 — PBS snapshots (all hosts → .19)
+#   03:00 — Docker volume dumps → NAS
+#   05:00 — NAS → Google Drive (Sundays)</code></pre>
+
+<h3>proxmox/restore-video-ai.sh</h3>
+<p>Restore the Video AI stack (8 containers) on ai NUC (.69). Syncs compose and config files from repo, creates data dirs, starts stack.</p>
+<p><strong>Usage:</strong> <code>./restore-video-ai.sh</code></p>
+
+<div class="box box-warning">
+  <strong>All Video AI containers require privileged: true on Proxmox</strong>
+  Docker iptables must also be enabled — daemon.json should be <code>{}</code>. The script checks and fixes this automatically.
+</div>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Containers restored:
+#   compreface-postgres (privileged) — Face recognition DB
+#   compreface (:8000→:80) — Exadel CompreFace all-in-one
+#   double-take (:3000) — Frigate↔CompreFace bridge
+#   qdrant (:6333, :6334) — Vector DB for semantic search
+#   n8n (:5678) — Automation workflows
+#   clip-indexer — ViT-B-32, polls Frigate, indexes Qdrant
+#   llava-bridge — Event narration via Ollama (llava:13b)
+#   face-trainer — CompreFace + Telegram ask-me loop
+#
+# Requires .env for: COMPREFACE_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID</code></pre>
+
+<h3>proxmox/restore-audio-pipeline.sh</h3>
+<p>Restore the Forensic Audio Pipeline on MSI (.74). Two containers: FastAPI backend + React/Vite frontend.</p>
+<p><strong>Usage:</strong> <code>./restore-audio-pipeline.sh</code></p>
+
+<div class="box box-warning">
+  <strong>Frontend must be built on the workstation (.95)</strong>
+  Proxmox blocks <code>child_process.spawn</code> in Docker build. Use <code>vm/audio-pipeline/deploy.sh all</code> from the workstation to build and deploy both images.
+</div>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Key config:
+#   security_opt: apparmor:unconfined, seccomp:unconfined (NOT privileged)
+#   API: 24GB memory limit, 10 CPU cores
+#   Whisper: large-v3, CPU int8 quantization
+#   DeepFilterNet: v3 neural noise reduction
+#   MultipartParser: unlimited file size (was 1MB default)
+#   CORS: audio.uptonx.com, localhost:5173, localhost:3000</code></pre>
+
+<h3>proxmox/restore-infisical.sh</h3>
+<p>Restore Infisical secrets management on ai NUC (.69). Creates compose file from template if missing, checks .env.</p>
+<p><strong>Usage:</strong> <code>./restore-infisical.sh</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Key config:
+#   Standalone Docker Compose (NOT in Swarm — overlay issues)
+#   Port: 8093 → 8080 (internal)
+#   Postgres: privileged: true (required on Proxmox)
+#   Redis: 7-alpine
+#
+# Required .env variables:
+#   INFISICAL_ENCRYPTION_KEY — 32-char hex key
+#   INFISICAL_AUTH_SECRET — random secret
+#   INFISICAL_POSTGRES_PASSWORD — DB password</code></pre>
 
 
 <!-- ==================== SECTION 3 ==================== -->
@@ -1212,7 +1327,182 @@ curl -s http://192.168.1.110:8080  # Open WebUI</code></pre>
   </div>
 </div>
 
-<!-- Scenario 8 -->
+<!-- Scenario 8: Video AI -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Video AI Stack Down (CompreFace / Double-Take / Qdrant)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li><code>faces.uptonx.com</code>, <code>dt.uptonx.com</code>, or <code>n8n.uptonx.com</code> unreachable</li>
+      <li>Face recognition not working in Frigate/Double-Take</li>
+      <li>Semantic search broken (Qdrant down)</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — SSH into ai NUC (.69).</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Check Docker status on ai NUC:
+        <pre><code>ssh root@192.168.1.69 "docker ps --format 'table {{.Names}}\t{{.Status}}'"</code></pre>
+      </li>
+      <li>If containers are down, run the restore script:
+        <pre><code>./docs/scripts/proxmox/restore-video-ai.sh</code></pre>
+      </li>
+      <li>If Docker iptables is disabled (containers can't reach each other):
+        <pre><code>ssh root@192.168.1.69 "echo '{}' > /etc/docker/daemon.json && systemctl restart docker"</code></pre>
+      </li>
+      <li>If <code>face_trainer</code> or <code>clip_indexer</code> fails, check .env:
+        <pre><code>ssh root@192.168.1.69 "cat /opt/video-ai/.env"
+# Needs: COMPREFACE_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>curl -s http://192.168.1.69:8000  # CompreFace
+curl -s http://192.168.1.69:3000  # Double-Take
+curl -s http://192.168.1.69:6333  # Qdrant
+curl -s http://192.168.1.69:5678  # n8n</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 9: Audio Pipeline -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Audio Pipeline Down</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li><code>audio.uptonx.com</code> unreachable or returns 502</li>
+      <li>Transcription/analysis not working</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — SSH into MSI (.74).</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Check container status:
+        <pre><code>ssh root@192.168.1.74 "cd /opt/stacks/audio-pipeline && docker compose ps"</code></pre>
+      </li>
+      <li>If containers are down:
+        <pre><code>./docs/scripts/proxmox/restore-audio-pipeline.sh</code></pre>
+      </li>
+      <li>If images are missing (after Docker prune or reinstall):
+        <pre><code># Must rebuild from workstation:
+cd ~/uptonx-homelab/vm/audio-pipeline
+./deploy.sh all</code></pre>
+      </li>
+      <li>Check API logs for model loading issues:
+        <pre><code>ssh root@192.168.1.74 "cd /opt/stacks/audio-pipeline && docker compose logs --tail 50 audio_api"</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>curl -s http://192.168.1.74:8000/docs   # API docs
+curl -s http://192.168.1.74:8090         # Frontend</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 10: Infisical -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Infisical Down (Secrets Unavailable)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li><code>infisical.uptonx.com</code> unreachable</li>
+      <li>Services that depend on secrets can't start</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — SSH into ai NUC (.69).</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Check Infisical containers:
+        <pre><code>ssh root@192.168.1.69 "cd /opt/infisical && docker compose ps"</code></pre>
+      </li>
+      <li>Run restore script:
+        <pre><code>./docs/scripts/proxmox/restore-infisical.sh</code></pre>
+      </li>
+      <li>If .env is missing, generate new secrets:
+        <pre><code>ssh root@192.168.1.69 bash -c 'cat > /opt/infisical/.env &lt;&lt;EOF
+INFISICAL_ENCRYPTION_KEY=$(openssl rand -hex 16)
+INFISICAL_AUTH_SECRET=$(openssl rand -base64 32)
+INFISICAL_POSTGRES_PASSWORD=$(openssl rand -base64 16)
+EOF'</code></pre>
+      </li>
+      <li>If postgres data is corrupted, restore from PBS:
+        <pre><code>./docs/scripts/proxmox/check-backups.sh  # Find latest backup
+# Restore infisical-postgres volume from NAS backup</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>curl -s -o /dev/null -w "%{http_code}" http://192.168.1.69:8093
+# Should return 200 or 302</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 11: Home Assistant -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Home Assistant Down</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li><code>http://192.168.1.14:8123</code> unreachable</li>
+      <li>Tablet dashboard blank, automations not running</li>
+      <li>Voice pipeline (Whisper/Piper) unresponsive</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — HA OS runs on its own appliance at .14.</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Check if HA is reachable:
+        <pre><code>ping 192.168.1.14</code></pre>
+        If unreachable, check physical device (power, network cable).
+      </li>
+      <li>If HA OS is reachable but web UI is down, SSH in:
+        <pre><code>ssh root@192.168.1.14  # Password: Terry87!
+ha core start          # Start HA Core
+ha core info           # Check status
+ha supervisor info     # Check supervisor</code></pre>
+      </li>
+      <li>Check addon status:
+        <pre><code>ha addons              # List all addons
+ha addons start core_ssh  # Restart SSH addon if needed</code></pre>
+      </li>
+      <li>If HA needs full restore from backup:
+        <pre><code># From HA CLI:
+ha backups             # List available backups
+ha backups restore &lt;slug&gt;  # Restore specific backup
+
+# Or from web UI (if accessible):
+# Settings → System → Backups → select backup → Restore</code></pre>
+      </li>
+      <li>If voice pipeline is down:
+        <pre><code>ha addons restart core_whisper   # Whisper STT (:10300)
+ha addons restart core_piper     # Piper TTS (:10200)</code></pre>
+      </li>
+    </ol>
+
+    <div class="box box-info">
+      <strong>HA Backup Best Practice</strong>
+      HA should be configured to create automatic backups. Check Settings → System → Backups. Consider copying backups to NAS for offsite recovery: <code>scp root@192.168.1.14:/backup/*.tar /mnt/nfs/backups/ha/</code>
+    </div>
+
+    <h4>Verification</h4>
+    <ul>
+      <li>Web UI loads at <code>http://192.168.1.14:8123</code></li>
+      <li>Tablet (.91) reconnects to dashboard</li>
+      <li>Frigate integration shows camera feeds</li>
+      <li>Automations running (Night Dim, Morning Restore)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Scenario 12: Network -->
 <div class="scenario">
   <div class="scenario-header">Scenario: Network Misconfiguration (Can't Reach Anything)</div>
   <div class="scenario-body">
@@ -1628,7 +1918,196 @@ echo "Sync complete!"</code></pre>
   <tr><td>Update credentials if changed</td><td>Immediately</td></tr>
   <tr><td>Sync offsite USB copy</td><td>After any update</td></tr>
   <tr><td>Update "Last Updated" date on label</td><td>After any update</td></tr>
+  <tr><td>Run <code>check-backups.sh</code> to verify PBS</td><td>Weekly</td></tr>
 </table>
+
+
+<!-- ==================== SECTION 7 ==================== -->
+<div class="section-banner">
+  <span class="badge">7</span>
+  <h2>PBS Backup &amp; Restore</h2>
+  <span class="subtitle">Proxmox Backup Server architecture, restore procedures, and verification</span>
+</div>
+
+<h3>Backup Architecture</h3>
+
+<p>UptonX uses a three-tier backup strategy with automated schedules:</p>
+
+<table>
+  <tr>
+    <th>Time</th>
+    <th>What</th>
+    <th>Where</th>
+    <th>Retention</th>
+  </tr>
+  <tr>
+    <td><strong>02:00 daily</strong></td>
+    <td>PBS snapshots — all VMs &amp; CTs on every Proxmox host</td>
+    <td>PBS at 192.168.1.19</td>
+    <td>14 days</td>
+  </tr>
+  <tr>
+    <td><strong>03:00 daily</strong></td>
+    <td>Docker volume dumps — PostgreSQL, SQLite, configs</td>
+    <td>NAS at 192.168.1.11</td>
+    <td>14 days</td>
+  </tr>
+  <tr>
+    <td><strong>05:00 Sundays</strong></td>
+    <td>Off-site sync — NAS → Google Drive</td>
+    <td>Google Drive (rclone)</td>
+    <td>Cloud-managed</td>
+  </tr>
+</table>
+
+<h4>Docker Volume Backup Coverage</h4>
+
+<table>
+  <tr>
+    <th>Host</th>
+    <th>What Gets Backed Up</th>
+    <th>How</th>
+  </tr>
+  <tr>
+    <td><strong>ai NUC</strong> (.69)</td>
+    <td>compreface-postgres, infisical-postgres, qdrant vectors, double-take config, n8n data</td>
+    <td>pg_dump + volume tar</td>
+  </tr>
+  <tr>
+    <td><strong>aux</strong> (.18)</td>
+    <td>frigate config, frigate.db</td>
+    <td>DB copy from /media/frigate/</td>
+  </tr>
+  <tr>
+    <td><strong>aux2</strong> (.80)</td>
+    <td>traefik ACME certs, authentik-postgresql, authentik-media</td>
+    <td>pg_dump + cert copy</td>
+  </tr>
+  <tr>
+    <td><strong>msi</strong> (.74)</td>
+    <td>audio-pipeline SQLite (jobs.db)</td>
+    <td>File copy</td>
+  </tr>
+  <tr>
+    <td><strong>email-rag</strong> (.110)</td>
+    <td>PostgreSQL (email_rag database)</td>
+    <td>pg_dump via sudo</td>
+  </tr>
+  <tr>
+    <td><strong>Swarm Mgr</strong> (.23)</td>
+    <td>grafana_data, prometheus, loki_data, portainer_data</td>
+    <td>Docker volume tar</td>
+  </tr>
+</table>
+
+<p>NAS archive path: <code>192.168.1.11:/volume1/UptonX/backups/{hostname}/</code></p>
+
+<h3>Restoring VMs &amp; CTs from PBS</h3>
+
+<h4>Method 1: Using the restore script</h4>
+<pre><code># Restore latest backup of Email RAG VM
+./docs/scripts/proxmox/restore-from-pbs.sh 192.168.1.69 401
+
+# Restore specific date
+./docs/scripts/proxmox/restore-from-pbs.sh 192.168.1.69 401 2026-03-10
+
+# Restore CT 106 (Swarm Manager)
+./docs/scripts/proxmox/restore-from-pbs.sh 192.168.1.18 106</code></pre>
+
+<h4>Method 2: From Proxmox Web UI</h4>
+<ol>
+  <li>Open Proxmox web UI: <code>https://&lt;host-ip&gt;:8006</code></li>
+  <li>Navigate to <strong>Datacenter → Storage → pbs</strong></li>
+  <li>Select the backup you want to restore</li>
+  <li>Click <strong>Restore</strong>, select target VMID and storage</li>
+  <li>Check "Start after restore" if desired</li>
+</ol>
+
+<h4>Method 3: CLI (manual)</h4>
+<pre><code># List available backups
+pvesh get /nodes/$(hostname)/storage/pbs/content --vmid 401
+
+# Restore a VM
+qmrestore &lt;backup-volid&gt; 401 --force
+
+# Restore a CT
+pct restore 106 &lt;backup-volid&gt; --force
+
+# Start after restore
+qm start 401   # or: pct start 106</code></pre>
+
+<h3>Docker Volume Backup Recovery</h3>
+
+<p>Docker volume backups are stored on the NAS. To restore:</p>
+
+<h4>PostgreSQL databases</h4>
+<pre><code># Find latest dump on NAS
+ssh root@192.168.1.69 "ls -lt /mnt/nfs/backups/ai/*.sql.gz | head -5"
+
+# Restore compreface postgres
+ssh root@192.168.1.69 "gunzip -c /mnt/nfs/backups/ai/compreface-latest.sql.gz | \
+  docker exec -i compreface-postgres psql -U compreface"
+
+# Restore infisical postgres
+ssh root@192.168.1.69 "gunzip -c /mnt/nfs/backups/ai/infisical-latest.sql.gz | \
+  docker exec -i infisical-postgres psql -U infisical"
+
+# Restore email-rag postgres (native, not Docker)
+ssh chris@192.168.1.110 "gunzip -c /mnt/nfs/backups/email-rag/email_rag-latest.sql.gz | \
+  sudo -u postgres psql email_rag"</code></pre>
+
+<h4>Docker volumes (tar archives)</h4>
+<pre><code># Restore Grafana data
+ssh root@192.168.1.23 "docker volume create grafana_data && \
+  docker run --rm -v grafana_data:/data -v /mnt/nfs/backups/swarm:/backup alpine \
+  tar xzf /backup/grafana_data-latest.tar.gz -C /data"</code></pre>
+
+<h4>Frigate database</h4>
+<pre><code># Stop Frigate first
+ssh root@192.168.1.18 "cd /opt/frigate && docker compose stop frigate"
+
+# Restore frigate.db
+ssh root@192.168.1.18 "cp /mnt/nfs/backups/aux/frigate.db /media/frigate/frigate.db"
+
+# Restart
+ssh root@192.168.1.18 "cd /opt/frigate && docker compose start frigate"</code></pre>
+
+<h3>Backup Verification</h3>
+
+<p>Run the backup check script to verify all backups are current:</p>
+
+<pre><code>./docs/scripts/proxmox/check-backups.sh</code></pre>
+
+<p>This checks:</p>
+<ul>
+  <li>PBS server (.19) reachability</li>
+  <li>Latest backup age per VMID on each Proxmox host</li>
+  <li>NAS Docker volume backup directories</li>
+</ul>
+
+<div class="box box-warning">
+  <strong>Backup age indicators</strong>
+  <ul>
+    <li><strong>✓</strong> — backup &lt; 26 hours old (healthy)</li>
+    <li><strong>⚠</strong> — backup 26-72 hours old (investigate)</li>
+    <li><strong>✗</strong> — backup &gt; 72 hours old (action needed)</li>
+  </ul>
+</div>
+
+<h4>Manual PBS verification</h4>
+<pre><code># PBS Web UI
+https://192.168.1.19:8007
+
+# List all backups from CLI (on any Proxmox host)
+pvesh get /nodes/$(hostname)/storage/pbs/content
+
+# Check PBS datastore status
+ssh root@192.168.1.19 "proxmox-backup-manager datastore list"</code></pre>
+
+<div class="box box-info">
+  <strong>Off-site backup verification</strong>
+  Check Google Drive sync status: <code>rclone ls gdrive:backups/ | head -20</code> (run from workstation where rclone is configured).
+</div>
 
 </body>
 </html>
