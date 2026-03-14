@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UptonX Recovery USB Manual</title>
+<style>
+@page {
+  size: letter;
+  margin: 0.75in 0.85in;
+  @bottom-center {
+    content: "UptonX Recovery USB Manual — Page " counter(page);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+}
+
+@page :first {
+  margin: 0;
+  @bottom-center { content: none; }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  color: #1f2937;
+  margin: 0;
+  padding: 0;
+}
+
+/* === COVER PAGE === */
+.cover {
+  page-break-after: always;
+  width: 8.5in;
+  height: 11in;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.cover::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 70% 60%, rgba(239, 68, 68, 0.1) 0%, transparent 50%);
+}
+
+.cover-content {
+  position: relative;
+  z-index: 1;
+  padding: 2in 1in;
+}
+
+.cover h1 {
+  font-size: 42pt;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin: 0 0 8pt;
+  background: linear-gradient(135deg, #60a5fa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cover h2 {
+  font-size: 18pt;
+  font-weight: 300;
+  color: #94a3b8;
+  margin: 0 0 40pt;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.cover .version {
+  font-size: 11pt;
+  color: #64748b;
+  margin-top: 30pt;
+}
+
+.cover .warning-badge {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+  padding: 12pt 24pt;
+  margin-top: 30pt;
+  color: #fca5a5;
+  font-size: 10pt;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* === SECTION BANNERS === */
+.section-banner {
+  background: linear-gradient(135deg, #0f172a, #1e3a5f);
+  color: white;
+  padding: 20pt 24pt;
+  margin: 0 -0.85in;
+  margin-top: 20pt;
+  page-break-before: always;
+  page-break-after: avoid;
+  position: relative;
+}
+
+.section-banner:first-of-type {
+  page-break-before: auto;
+}
+
+.section-banner .badge {
+  display: inline-block;
+  background: #3b82f6;
+  color: white;
+  width: 32pt;
+  height: 32pt;
+  line-height: 32pt;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 14pt;
+  font-weight: 700;
+  margin-right: 12pt;
+  vertical-align: middle;
+}
+
+.section-banner h2 {
+  display: inline;
+  font-size: 20pt;
+  font-weight: 700;
+  vertical-align: middle;
+  margin: 0;
+}
+
+.section-banner .subtitle {
+  display: block;
+  margin-top: 6pt;
+  margin-left: 44pt;
+  font-size: 10pt;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* === CONTENT === */
+h3 {
+  font-size: 13pt;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 16pt 0 8pt;
+  padding-bottom: 4pt;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+h4 {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #334155;
+  margin: 12pt 0 6pt;
+}
+
+p {
+  margin: 6pt 0;
+}
+
+ul, ol {
+  margin: 6pt 0;
+  padding-left: 20pt;
+}
+
+li {
+  margin: 3pt 0;
+}
+
+/* === CODE BLOCKS === */
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 10pt 14pt;
+  border-radius: 6pt;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 8pt;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  margin: 8pt 0;
+  border-left: 3px solid #3b82f6;
+  page-break-inside: avoid;
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 8.5pt;
+  background: #f1f5f9;
+  padding: 1pt 4pt;
+  border-radius: 3pt;
+  color: #0f172a;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* === INFO/WARNING/DANGER BOXES === */
+.box {
+  padding: 10pt 14pt;
+  border-radius: 6pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+}
+
+.box-info {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+}
+
+.box-warning {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  color: #92400e;
+}
+
+.box-danger {
+  background: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+
+.box-success {
+  background: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  color: #166534;
+}
+
+.box strong {
+  display: block;
+  margin-bottom: 4pt;
+}
+
+/* === TABLES === */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10pt 0;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #0f172a;
+  color: white;
+  padding: 7pt 10pt;
+  text-align: left;
+  font-weight: 600;
+  font-size: 8.5pt;
+}
+
+td {
+  padding: 6pt 10pt;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+/* === SCENARIO CARDS === */
+.scenario {
+  border: 1px solid #e2e8f0;
+  border-radius: 8pt;
+  margin: 12pt 0;
+  page-break-inside: avoid;
+  overflow: hidden;
+}
+
+.scenario-header {
+  background: #f8fafc;
+  padding: 8pt 14pt;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 700;
+  font-size: 11pt;
+  color: #0f172a;
+}
+
+.scenario-body {
+  padding: 10pt 14pt;
+}
+
+.scenario-body h4 {
+  margin-top: 8pt;
+  font-size: 9.5pt;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+}
+
+/* === DIRECTORY TREE === */
+.tree {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5pt;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6pt;
+  padding: 12pt 16pt;
+  line-height: 1.7;
+  page-break-inside: avoid;
+}
+
+/* === CREDENTIAL CARD === */
+.cred-card {
+  background: #fef2f2;
+  border: 2px solid #ef4444;
+  border-radius: 8pt;
+  padding: 14pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+}
+
+.cred-card h3 {
+  color: #991b1b;
+  border-bottom-color: #fecaca;
+  margin-top: 0;
+}
+
+/* === TOC === */
+.toc {
+  page-break-after: always;
+}
+
+.toc h2 {
+  font-size: 20pt;
+  color: #0f172a;
+  margin-bottom: 16pt;
+}
+
+.toc-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 5pt 0;
+  border-bottom: 1px dotted #cbd5e1;
+  font-size: 10pt;
+}
+
+.toc-section {
+  font-weight: 700;
+  font-size: 11pt;
+  margin-top: 10pt;
+  padding-top: 4pt;
+  border-bottom: none;
+  color: #0f172a;
+}
+
+.toc-sub {
+  padding-left: 20pt;
+  color: #475569;
+}
+
+/* === STEP LIST === */
+.step {
+  counter-increment: step-counter;
+  position: relative;
+  padding-left: 36pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+}
+
+.step::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24pt;
+  height: 24pt;
+  line-height: 24pt;
+  text-align: center;
+  background: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  font-size: 10pt;
+  font-weight: 700;
+}
+
+.steps {
+  counter-reset: step-counter;
+}
+
+/* === USB LABEL === */
+.usb-label {
+  border: 2px dashed #3b82f6;
+  border-radius: 8pt;
+  padding: 16pt;
+  text-align: center;
+  margin: 16pt auto;
+  max-width: 300pt;
+  page-break-inside: avoid;
+}
+
+.usb-label h4 {
+  margin: 0 0 4pt;
+  color: #0f172a;
+}
+
+.usb-label p {
+  margin: 2pt 0;
+  font-size: 9pt;
+  color: #475569;
+}
+
+.page-break {
+  page-break-before: always;
+}
+
+.no-break {
+  page-break-inside: avoid;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="cover">
+  <div class="cover-content">
+    <h1>UptonX</h1>
+    <h2>Recovery USB Manual</h2>
+    <p style="font-size: 12pt; color: #cbd5e1; margin-bottom: 20pt;">
+      Emergency recovery procedures, scripts, and cold-boot sequence<br>
+      for the UptonX homelab infrastructure
+    </p>
+    <div class="warning-badge">Keep Two Copies — One Offsite</div>
+    <p class="version">
+      Version 1.0 &mdash; March 2026<br>
+      Generated from uptonx-homelab repository
+    </p>
+  </div>
+</div>
+
+<!-- ==================== TABLE OF CONTENTS ==================== -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+
+  <div class="toc-entry toc-section">Section 1 &mdash; Recovery USB Setup</div>
+  <div class="toc-entry toc-sub">Ventoy Installation</div>
+  <div class="toc-entry toc-sub">Recommended ISO Layout</div>
+  <div class="toc-entry toc-sub">Persistence Partition</div>
+  <div class="toc-entry toc-sub">Keeping ISOs Updated</div>
+
+  <div class="toc-entry toc-section">Section 2 &mdash; UptonX Scripts Partition</div>
+  <div class="toc-entry toc-sub">Directory Structure</div>
+  <div class="toc-entry toc-sub">Proxmox Scripts</div>
+  <div class="toc-entry toc-sub">Swarm Scripts</div>
+  <div class="toc-entry toc-sub">Network Scripts</div>
+  <div class="toc-entry toc-sub">Frigate Scripts</div>
+  <div class="toc-entry toc-sub">Nuke Scripts</div>
+
+  <div class="toc-entry toc-section">Section 3 &mdash; Boot &amp; Recovery Scenarios</div>
+  <div class="toc-entry toc-sub">Proxmox Host Won't Boot</div>
+  <div class="toc-entry toc-sub">Docker Swarm Lost Quorum</div>
+  <div class="toc-entry toc-sub">CT 106 Destroyed</div>
+  <div class="toc-entry toc-sub">Traefik Down</div>
+  <div class="toc-entry toc-sub">Frigate NVR Crashed</div>
+  <div class="toc-entry toc-sub">NAS Unreachable</div>
+  <div class="toc-entry toc-sub">Email RAG VM Corrupted</div>
+  <div class="toc-entry toc-sub">Network Misconfiguration</div>
+  <div class="toc-entry toc-sub">Full Power Loss / Cold Boot</div>
+
+  <div class="toc-entry toc-section">Section 4 &mdash; Cold Boot Sequence</div>
+  <div class="toc-entry toc-sub">Complete Startup Order</div>
+  <div class="toc-entry toc-sub">Verification Checklist</div>
+
+  <div class="toc-entry toc-section">Section 5 &mdash; Emergency Credentials</div>
+  <div class="toc-entry toc-sub">Infrastructure Credentials Card</div>
+
+  <div class="toc-entry toc-section">Section 6 &mdash; Physical USB Maintenance</div>
+  <div class="toc-entry toc-sub">Updating ISOs</div>
+  <div class="toc-entry toc-sub">Syncing Scripts from Gitea</div>
+  <div class="toc-entry toc-sub">Labeling and Storage</div>
+</div>
+
+<!-- ==================== SECTION 1 ==================== -->
+<div class="section-banner">
+  <span class="badge">1</span>
+  <h2>Recovery USB Setup</h2>
+  <span class="subtitle">Ventoy multi-boot USB with ISOs and recovery tools</span>
+</div>
+
+<h3>Ventoy Installation</h3>
+
+<p>Ventoy creates a multi-boot USB that boots ISO files directly — no need to flash each ISO separately. Drop ISOs onto the USB and Ventoy handles the rest.</p>
+
+<h4>Requirements</h4>
+<ul>
+  <li>USB stick: <strong>64 GB minimum</strong> (128 GB recommended)</li>
+  <li>Linux workstation with <code>ventoy</code> installed</li>
+  <li>All data on the USB will be erased during setup</li>
+</ul>
+
+<h4>Installation Steps</h4>
+<div class="steps">
+  <div class="step">
+    <strong>Download Ventoy</strong> from the official release page. Extract the archive.
+    <pre><code>wget https://github.com/ventoy/Ventoy/releases/download/v1.0.99/ventoy-1.0.99-linux.tar.gz
+tar xzf ventoy-1.0.99-linux.tar.gz
+cd ventoy-1.0.99</code></pre>
+  </div>
+  <div class="step">
+    <strong>Identify the USB device</strong> (be absolutely certain — wrong device = data loss).
+    <pre><code>lsblk -o NAME,SIZE,MODEL,TRAN | grep usb</code></pre>
+  </div>
+  <div class="step">
+    <strong>Install Ventoy</strong> to the USB. This creates two partitions: a large exFAT partition for ISOs and a small EFI partition.
+    <pre><code># Replace /dev/sdX with your USB device
+sudo ./Ventoy2Disk.sh -i -r 8192 /dev/sdX</code></pre>
+    <p>The <code>-r 8192</code> flag reserves 8 GB at the end for the UPTONX-RECOVERY partition (created next).</p>
+  </div>
+  <div class="step">
+    <strong>Create the UPTONX-RECOVERY partition</strong> in the reserved space.
+    <pre><code># Create partition in reserved space
+sudo parted /dev/sdX mkpart primary fat32 -- -8192MiB -1MiB
+# Format as FAT32 with label
+sudo mkfs.vfat -F 32 -n UPTONX-RECOVERY /dev/sdX3</code></pre>
+  </div>
+</div>
+
+<div class="box box-info">
+  <strong>Tip: Ventoy supports Secure Boot</strong>
+  If you need Secure Boot support, use <code>sudo ./Ventoy2Disk.sh -i -s /dev/sdX</code> during installation. The UptonX lab hosts use legacy/UEFI boot without Secure Boot, so this is optional.
+</div>
+
+<h3>Recommended ISO Layout</h3>
+
+<p>Copy these ISOs to the Ventoy partition (the large exFAT partition, typically <code>/dev/sdX1</code>):</p>
+
+<table>
+  <tr>
+    <th>ISO</th>
+    <th>Purpose</th>
+    <th>Size</th>
+  </tr>
+  <tr>
+    <td><strong>Ubuntu 24.04 LTS</strong> (Desktop Live)</td>
+    <td>Primary recovery OS — SSH, filesystem tools, Docker, networking</td>
+    <td>~5.7 GB</td>
+  </tr>
+  <tr>
+    <td><strong>SystemRescue</strong> (latest)</td>
+    <td>Filesystem repair (fsck, xfs_repair), partition management, data recovery</td>
+    <td>~900 MB</td>
+  </tr>
+  <tr>
+    <td><strong>Clonezilla</strong> (latest stable)</td>
+    <td>Disk imaging — full-disk backup and restore</td>
+    <td>~400 MB</td>
+  </tr>
+  <tr>
+    <td><strong>Proxmox VE Installer</strong> (latest 8.x)</td>
+    <td>Rebuild a Proxmox host from scratch</td>
+    <td>~1.2 GB</td>
+  </tr>
+  <tr>
+    <td><strong>memtest86+</strong> (v7.x)</td>
+    <td>RAM diagnostics — identify bad memory sticks</td>
+    <td>~10 MB</td>
+  </tr>
+</table>
+
+<h4>Recommended Directory Structure on Ventoy Partition</h4>
+<div class="tree">
+/ventoy/          (Ventoy config — auto-created)<br>
+/iso/<br>
+├── ubuntu-24.04.2-desktop-amd64.iso<br>
+├── systemrescue-11.03-amd64.iso<br>
+├── clonezilla-live-3.2.0-5-amd64.iso<br>
+├── proxmox-ve_8.3-1.iso<br>
+└── memtest86+-7.20.iso
+</div>
+
+<div class="box box-info">
+  <strong>Ventoy auto-detects ISOs</strong>
+  Place ISOs anywhere on the Ventoy partition. Using <code>/iso/</code> keeps things organized. Ventoy will find and list them all in the boot menu regardless of directory structure.
+</div>
+
+<h3>Persistence Partition Setup</h3>
+
+<p>The UPTONX-RECOVERY partition (created in step 4 above) stores recovery scripts, credentials, and documentation that persist across boots. This partition is accessible from any booted ISO as a standard FAT32 volume.</p>
+
+<h4>Mount the Recovery Partition After Booting an ISO</h4>
+<pre><code># Find the UPTONX-RECOVERY partition
+lsblk -o NAME,LABEL | grep UPTONX-RECOVERY
+
+# Mount it
+sudo mkdir -p /mnt/recovery
+sudo mount /dev/sdX3 /mnt/recovery</code></pre>
+
+<h3>Keeping ISOs Updated</h3>
+
+<ol>
+  <li>Download new ISO versions to your workstation</li>
+  <li>Mount the Ventoy partition: <code>sudo mount /dev/sdX1 /mnt/ventoy</code></li>
+  <li>Replace old ISOs in <code>/mnt/ventoy/iso/</code> with new versions</li>
+  <li>Unmount: <code>sudo umount /mnt/ventoy</code></li>
+  <li>No need to re-install Ventoy — it reads ISOs at boot time</li>
+</ol>
+
+<div class="box box-warning">
+  <strong>Keep Ventoy itself updated</strong>
+  Periodically update Ventoy to support newer ISO formats: <code>sudo ./Ventoy2Disk.sh -u /dev/sdX</code> (preserves data).
+</div>
+
+
+<!-- ==================== SECTION 2 ==================== -->
+<div class="section-banner">
+  <span class="badge">2</span>
+  <h2>UptonX Scripts Partition</h2>
+  <span class="subtitle">Recovery scripts organized by subsystem on UPTONX-RECOVERY</span>
+</div>
+
+<h3>Directory Structure</h3>
+
+<div class="tree">
+UPTONX-RECOVERY (FAT32)<br>
+├── scripts/<br>
+│   ├── proxmox/<br>
+│   │   ├── rejoin-swarm-worker.sh<br>
+│   │   └── restore-lxc-config.sh<br>
+│   ├── swarm/<br>
+│   │   ├── redeploy-all.sh<br>
+│   │   └── check-health.sh<br>
+│   ├── network/<br>
+│   │   ├── remount-nfs.sh<br>
+│   │   └── fix-dns.sh<br>
+│   ├── frigate/<br>
+│   │   ├── check-coral.sh<br>
+│   │   └── emergency-restart.sh<br>
+│   └── nuke/<br>
+│       └── rebuild-ct106.sh<br>
+├── docs/<br>
+│   ├── recovery-usb-manual.pdf<br>
+│   └── credentials.pdf<br>
+└── isos/ → (symlink to Ventoy ISO directory)
+</div>
+
+<div class="box box-info">
+  <strong>These scripts are also committed to the repo</strong>
+  All scripts below live at <code>docs/scripts/</code> in the <code>uptonx-homelab</code> repo and are synced to the USB. The canonical version is always in Git.
+</div>
+
+<h3>proxmox/rejoin-swarm-worker.sh</h3>
+<p>Re-adds a Proxmox host (or workstation) as a Docker Swarm worker after rebuild or reinstall.</p>
+<p><strong>Usage:</strong> <code>./rejoin-swarm-worker.sh &lt;worker-ip&gt;</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Rejoin a Proxmox host as a Docker Swarm worker after rebuild
+WORKER_IP="${1:?Usage: $0 &lt;worker-ip&gt;}"
+MANAGER="root@192.168.1.23"
+
+echo "============================================"
+echo " Rejoin Swarm Worker: $WORKER_IP"
+echo "============================================"
+
+# Determine SSH user
+case "$WORKER_IP" in
+  192.168.1.95) WORKER_SSH="chris@$WORKER_IP" ;;
+  *)            WORKER_SSH="root@$WORKER_IP" ;;
+esac
+
+# Step 1: Verify Docker
+echo "[1/5] Checking Docker on worker ..."
+ssh "$WORKER_SSH" "docker info --format '{{.ServerVersion}}'" || {
+  echo "ERROR: Docker not running. Install: curl -fsSL https://get.docker.com | sh"
+  exit 1
+}
+
+# Step 2: Leave stale swarm
+echo "[2/5] Leaving stale swarm ..."
+ssh "$WORKER_SSH" "docker swarm leave --force 2>/dev/null || true"
+
+# Step 3: Get worker join token
+echo "[3/5] Getting join token ..."
+WORKER_TOKEN=$(ssh "$MANAGER" "docker swarm join-token -q worker")
+
+# Step 4: Join swarm
+echo "[4/5] Joining swarm ..."
+if [ "$WORKER_IP" = "192.168.1.95" ]; then
+  ssh "$WORKER_SSH" "sudo docker swarm join --token $WORKER_TOKEN 192.168.1.23:2377"
+else
+  ssh "$WORKER_SSH" "docker swarm join --token $WORKER_TOKEN 192.168.1.23:2377"
+fi
+
+# Step 5: Apply node labels
+echo "[5/5] Applying labels ..."
+HOSTNAME=$(ssh "$WORKER_SSH" "hostname")
+case "$WORKER_IP" in
+  192.168.1.74) ssh "$MANAGER" "docker node update --label-add host=msi $HOSTNAME" ;;
+  192.168.1.69) ssh "$MANAGER" "docker node update --label-add host=ai $HOSTNAME" ;;
+  192.168.1.95) ssh "$MANAGER" "docker node update --label-add host=workstation --label-add gpu=true $HOSTNAME" ;;
+esac
+
+echo "Done! Verify: ssh $MANAGER docker node ls"</code></pre>
+
+<h3>proxmox/restore-lxc-config.sh</h3>
+<p>Reapplies the correct AppArmor/nesting configuration to Swarm manager LXC containers (CT 106, 109, 110). Run after any CT config corruption or Proxmox host rebuild.</p>
+<p><strong>Usage:</strong> <code>./restore-lxc-config.sh [ctid]</code> — without args fixes all three managers.</p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Required LXC config for Swarm managers:
+#   features: keyctl=1,nesting=1
+#   lxc.apparmor.profile: unconfined
+#   unprivileged: 0
+
+declare -A CT_HOST_MAP=(
+  [106]="root@192.168.1.18"   # aux
+  [109]="root@192.168.1.77"   # helm
+  [110]="root@192.168.1.80"   # aux2
+)
+
+fix_ct() {
+  local ctid=$1 pve_host=${CT_HOST_MAP[$ctid]}
+  echo "Fixing CT $ctid on $pve_host ..."
+  ssh "$pve_host" bash -s &lt;&lt;FIXEOF
+    CONF="/etc/pve/lxc/${ctid}.conf"
+    # Ensure nesting
+    grep -q 'nesting=1' "\$CONF" || echo 'features: keyctl=1,nesting=1' >> "\$CONF"
+    # Ensure AppArmor unconfined
+    grep -q 'lxc.apparmor.profile: unconfined' "\$CONF" || \
+      echo 'lxc.apparmor.profile: unconfined' >> "\$CONF"
+    # Ensure privileged
+    sed -i 's/unprivileged: 1/unprivileged: 0/' "\$CONF"
+    grep -E 'features|apparmor|unprivileged' "\$CONF"
+FIXEOF
+  echo "Restart CT to apply: ssh $pve_host 'pct stop $ctid && pct start $ctid'"
+}
+
+if [ $# -eq 1 ]; then fix_ct "$1"
+else for ctid in 106 109 110; do fix_ct "$ctid"; done; fi</code></pre>
+
+<h3>swarm/redeploy-all.sh</h3>
+<p>Tears down all Swarm stacks and redeploys them from the repo in the correct order. Run from the repo root or set <code>REPO_DIR</code>.</p>
+<p><strong>Usage:</strong> <code>./redeploy-all.sh</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+MANAGER="root@192.168.1.23"
+REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
+# 1. Check swarm health
+NODE_COUNT=$(ssh "$MANAGER" "docker node ls --format '{{.Status}}' | grep -c Ready")
+echo "$NODE_COUNT nodes Ready"
+
+# 2. Remove existing stacks
+for stack in $(ssh "$MANAGER" "docker stack ls --format '{{.Name}}'"); do
+  ssh "$MANAGER" "docker stack rm $stack"
+done
+sleep 10
+
+# 3. Ensure overlay networks
+ssh "$MANAGER" bash -c 'docker network create --driver overlay --attachable proxy 2>/dev/null || true'
+ssh "$MANAGER" bash -c 'docker network create --driver overlay --attachable internal 2>/dev/null || true'
+
+# 4. Sync stack files
+rsync -az --delete --exclude='.git' "$REPO_DIR/swarm/" "$MANAGER:/opt/stacks/"
+
+# 5. Deploy in order
+for stack in portainer whoami landing uptime-kuma grafana cody; do
+  ssh "$MANAGER" "docker stack deploy -c /opt/stacks/$stack/stack.yml $stack" 2>/dev/null || true
+  sleep 2
+done
+
+# 6. Infisical (needs secrets)
+ssh "$MANAGER" "test -f /opt/secrets/swarm.env" && \
+  ssh "$MANAGER" "set -a && source /opt/secrets/swarm.env && set +a && \
+    docker stack deploy -c /opt/stacks/infisical/stack.yml infisical" || \
+  echo "SKIP infisical — /opt/secrets/swarm.env not found"
+
+# 7. Verify
+ssh "$MANAGER" "docker stack ls && docker service ls"</code></pre>
+
+<h3>swarm/check-health.sh</h3>
+<p>Comprehensive health check of all Swarm nodes, services, standalone services, and NFS mounts. Prints a colour-coded status table.</p>
+<p><strong>Usage:</strong> <code>./check-health.sh</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+MANAGER="root@192.168.1.23"
+
+# Checks: swarm nodes, stack status, service replicas,
+#          overlay networks, standalone services (ping),
+#          NAS reachability
+
+# Standalone services checked:
+#   Traefik (.15:443), Technitium DNS (.51:5380),
+#   Frigate (.18:5000), Email RAG (.110:3000),
+#   Audio (.74:8090), Home Assistant (.14:8123),
+#   CompreFace (.69:8000), Double-Take (.69:3000),
+#   Infisical (.69:8093)
+
+# Output: colour-coded table with ✓/✗ status per service</code></pre>
+
+<h3>network/remount-nfs.sh</h3>
+<p>Unmounts stale NFS and remounts all NFS shares. Checks NAS reachability first.</p>
+<p><strong>Usage:</strong> <code>./remount-nfs.sh [all|email-rag|frigate]</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+NAS_IP="192.168.1.11"
+
+# NFS Shares:
+#   Email RAG (.110): 192.168.1.11:/volume1/UptonX/email-rag → /mnt/nfs/volumes/email-rag
+#   Frigate   (.18):  192.168.1.11:/volume1/UptonX/frigate   → /mnt/nfs/frigate
+
+# Steps:
+#   1. Ping NAS to verify reachability
+#   2. Check if mount is stale (timeout on ls)
+#   3. Force-unmount stale mounts (umount -l)
+#   4. Remount with NFSv3, soft, timeo=30
+#   5. Verify mount is healthy</code></pre>
+
+<h3>network/fix-dns.sh</h3>
+<p>Restores Technitium DNS (CT 101 on aux2, .51) and flushes DNS caches on all hosts.</p>
+<p><strong>Usage:</strong> <code>./fix-dns.sh</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Steps:
+#   1. Check CT 101 status on aux2 — start if stopped
+#   2. Verify Docker running inside CT
+#   3. Check/start Technitium container
+#   4. Flush systemd-resolved caches on all Proxmox hosts
+#   5. Test DNS resolution for uptonx.com domains</code></pre>
+
+<h3>frigate/check-coral.sh</h3>
+<p>Verifies Coral USB TPU detection, VAAPI availability, Frigate container health, camera stream reachability, MQTT status, and NFS archive mount.</p>
+<p><strong>Usage:</strong> <code>./check-coral.sh</code></p>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+FRIGATE_HOST="root@192.168.1.18"
+
+# Checks:
+#   1. Coral USB TPU via lsusb (google/coral/global unichip)
+#   2. /dev/dri/renderD128 (VAAPI Intel iGPU)
+#   3. Frigate container running + API health
+#   4. Camera pings on VLAN 40:
+#      Reolink Front (40.11), Side (40.12), Back (40.13)
+#      Tapo Indoor (40.19), EZVIZ Doorbell (40.50)
+#   5. Mosquitto MQTT sidecar
+#   6. NFS archive mount (/mnt/nfs/frigate)</code></pre>
+
+<h3>frigate/emergency-restart.sh</h3>
+<p>Stops and cleanly restarts Frigate and all sidecars using Docker Compose.</p>
+<p><strong>Usage:</strong> <code>./emergency-restart.sh</code></p>
+
+<div class="box box-danger">
+  <strong>Frigate uses docker compose, NEVER docker stack deploy</strong>
+  Frigate requires host networking for camera access on VLAN 40. Docker Swarm mode does not support host networking for services. Always use <code>docker compose</code> on aux (.18).
+</div>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+FRIGATE_HOST="root@192.168.1.18"
+FRIGATE_DIR="/opt/frigate"
+
+# Steps:
+#   1. docker compose down (30s timeout)
+#   2. Force-remove orphaned containers
+#   3. Verify Coral TPU accessible (lsusb)
+#   4. Check/remount NFS archive
+#   5. docker compose up -d
+#   6. Wait 30s, verify API on :5000</code></pre>
+
+<h3>nuke/rebuild-ct106.sh</h3>
+
+<div class="box box-danger">
+  <strong>DESTRUCTIVE — Full teardown and rebuild of CT 106</strong>
+  This destroys the primary Swarm manager. ALL Swarm state is lost. Every node (managers and workers) must rejoin the swarm afterward. Only use this when CT 106 is unrecoverable.
+</div>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+# Phases:
+#   1. Destroy existing CT 106 on aux (.18)
+#   2. Create new CT 106 (2 cores, 2GB RAM, 20GB disk, .23)
+#      Config: keyctl=1, nesting=1, apparmor unconfined, privileged
+#   3. Install Docker CE
+#   4. Configure Docker daemon with TCP API on :2375
+#      (Traefik at .15 connects to this for swarm service discovery)
+#   5. Configure UFW (SSH, swarm ports, Traefik→Docker API)
+#   6. Initialize new Docker Swarm (--advertise-addr 192.168.1.23)
+#   7. Create overlay networks: proxy, internal
+#
+# After running, you must:
+#   1. Rejoin Manager 2 (CT 109) and Manager 3 (CT 110)
+#   2. Rejoin all workers (.74, .69, .95)
+#   3. Recreate /opt/secrets/swarm.env
+#   4. Redeploy all stacks
+#   5. Restart Traefik on CT 102 (.15)</code></pre>
+
+
+<!-- ==================== SECTION 3 ==================== -->
+<div class="section-banner">
+  <span class="badge">3</span>
+  <h2>Boot &amp; Recovery Scenarios</h2>
+  <span class="subtitle">Symptoms, which ISO to boot, exact steps, and verification</span>
+</div>
+
+<!-- Scenario 1 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Proxmox Host Won't Boot (Filesystem Corruption)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>Proxmox host stuck at boot, filesystem errors in console output</li>
+      <li>SSH unreachable, web UI at <code>https://&lt;host-ip&gt;:8006</code> not loading</li>
+      <li>VMs/CTs on that host are down</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>SystemRescue ISO</strong> — optimized for filesystem repair and data recovery.</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Boot the affected host from the Recovery USB → select <strong>SystemRescue</strong></li>
+      <li>Identify the root filesystem:
+        <pre><code>lsblk -f
+# Proxmox typically uses: /dev/sda3 (ext4) or LVM on /dev/pve/root</code></pre>
+      </li>
+      <li>Run filesystem check:
+        <pre><code># For ext4:
+fsck.ext4 -y /dev/sda3
+
+# For XFS (data drives):
+xfs_repair /dev/sdX
+
+# For LVM:
+vgscan
+vgchange -ay
+fsck.ext4 -y /dev/pve/root</code></pre>
+      </li>
+      <li>If filesystem is unrecoverable:
+        <ul>
+          <li>Backup data: <code>mount /dev/sdX /mnt/old && rsync -a /mnt/old/etc/pve/ /mnt/recovery/backup/</code></li>
+          <li>Reinstall Proxmox using the <strong>Proxmox VE ISO</strong> from the same USB</li>
+          <li>Restore CT/VM configs from the backup or from PBS (.19)</li>
+        </ul>
+      </li>
+      <li>Reboot and verify Proxmox web UI loads</li>
+    </ol>
+
+    <h4>Verification</h4>
+    <ul>
+      <li>Proxmox web UI accessible at <code>https://&lt;host-ip&gt;:8006</code></li>
+      <li>All CTs/VMs on the host are running</li>
+      <li>If Swarm node: verify with <code>docker node ls</code> from manager</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Scenario 2 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Docker Swarm Lost Quorum (Majority Managers Down)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li><code>docker node ls</code> hangs or returns "Error: rpc error: raft quorum lost"</li>
+      <li>Services can't be updated, deployed, or inspected</li>
+      <li>At least 2 of 3 managers are down or unreachable</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — fix from any working machine with SSH access.</p>
+
+    <h4>Steps</h4>
+    <div class="box box-warning">
+      <strong>If only 1 manager is down:</strong> Fix that manager and quorum restores automatically. Only use force-new-cluster as a last resort when 2+ managers are down.
+    </div>
+    <ol>
+      <li>Find the one surviving manager and force it to become a single-node cluster:
+        <pre><code># On the surviving manager (e.g., CT 106 at .23):
+docker swarm init --force-new-cluster --advertise-addr 192.168.1.23</code></pre>
+      </li>
+      <li>Rejoin the other managers:
+        <pre><code>MANAGER_TOKEN=$(docker swarm join-token -q manager)
+# From each downed manager CT:
+docker swarm leave --force
+docker swarm join --token $MANAGER_TOKEN 192.168.1.23:2377</code></pre>
+      </li>
+      <li>If no managers survive, rebuild CT 106:
+        <pre><code>./docs/scripts/nuke/rebuild-ct106.sh</code></pre>
+        Then rejoin all other nodes.
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>docker node ls
+# All 6 nodes should show Status=Ready
+# 3 managers, 3 workers
+docker service ls
+# All services should show correct replica counts</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 3 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: CT 106 (Primary Swarm Manager) Destroyed</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>CT 106 on aux (.18) is destroyed, corrupted, or unrecoverable</li>
+      <li>Traefik can't reach Docker API at tcp://192.168.1.23:2375</li>
+      <li>All *.uptonx.com Swarm services are unreachable (Traefik has no backend)</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — run rebuild script from workstation or another host with SSH access to aux (.18).</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Run the nuke/rebuild script:
+        <pre><code>./docs/scripts/nuke/rebuild-ct106.sh</code></pre>
+      </li>
+      <li>Script will output join tokens. Rejoin all other nodes using the tokens printed.</li>
+      <li>Redeploy stacks: <code>./docs/scripts/swarm/redeploy-all.sh</code></li>
+      <li>Restart Traefik to reconnect to new Docker API:
+        <pre><code>ssh root@192.168.1.15 "cd /opt/traefik && docker compose restart"</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <ul>
+      <li><code>docker node ls</code> shows all 6 nodes</li>
+      <li><code>docker service ls</code> shows all services with correct replicas</li>
+      <li><code>curl -s https://whoami.uptonx.com</code> returns a response</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Scenario 4 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Traefik Down (All *.uptonx.com Unreachable)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>All <code>*.uptonx.com</code> domains return connection refused or timeout</li>
+      <li>Direct IP access to services still works (e.g., <code>http://192.168.1.18:5000</code>)</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — SSH into CT 102 on aux2 (.80).</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Check CT 102 is running:
+        <pre><code>ssh root@192.168.1.80 "pct status 102"
+# If stopped:
+ssh root@192.168.1.80 "pct start 102"</code></pre>
+      </li>
+      <li>SSH into CT 102 and check Traefik:
+        <pre><code>ssh root@192.168.1.15 "cd /opt/traefik && docker compose ps"
+# If not running:
+ssh root@192.168.1.15 "cd /opt/traefik && docker compose up -d"</code></pre>
+      </li>
+      <li>Check Traefik can reach the Docker API:
+        <pre><code>ssh root@192.168.1.15 "curl -s http://192.168.1.23:2375/version"
+# If this fails, check CT 106 Docker daemon</code></pre>
+      </li>
+      <li>Check TLS certificates:
+        <pre><code>ssh root@192.168.1.15 "ls -la /opt/traefik/acme.json"
+# If missing/empty, Traefik will auto-request via Cloudflare DNS challenge</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>curl -s -o /dev/null -w "%{http_code}" https://whoami.uptonx.com
+# Should return 200</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 5 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Frigate NVR Crashed (Cameras Offline)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>Camera feeds not loading in Frigate UI or Home Assistant</li>
+      <li><code>http://192.168.1.18:5000</code> not responding</li>
+      <li>No new recordings appearing</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — SSH into aux (.18).</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Run the hardware check first:
+        <pre><code>./docs/scripts/frigate/check-coral.sh</code></pre>
+      </li>
+      <li>If containers are down, run emergency restart:
+        <pre><code>./docs/scripts/frigate/emergency-restart.sh</code></pre>
+      </li>
+      <li>If Coral TPU is not detected:
+        <ul>
+          <li>Physically reseat the Coral USB device</li>
+          <li>Check <code>dmesg | grep apex</code> for driver errors</li>
+          <li>Frigate will fall back to CPU detection (slower but functional)</li>
+        </ul>
+      </li>
+      <li>If NFS archive is stale: <code>./docs/scripts/network/remount-nfs.sh frigate</code></li>
+    </ol>
+
+    <h4>Verification</h4>
+    <ul>
+      <li>Frigate UI loads at <code>http://192.168.1.18:5000</code></li>
+      <li>All 5 cameras show live feeds</li>
+      <li>Frigate API: <code>curl -s http://192.168.1.18:5000/api/stats</code></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Scenario 6 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: NAS Unreachable (NFS Mounts Stale Everywhere)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>Commands that touch NFS paths hang (ls, df, du)</li>
+      <li>Email RAG VM containers failing to start</li>
+      <li>Frigate NAS archival failing</li>
+      <li><code>ping 192.168.1.11</code> fails</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — physical access to NAS required.</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li><strong>Check physical NAS:</strong> Power button, network cable, status LEDs on the UGreen NAS</li>
+      <li><strong>If NAS is off:</strong> Power it on and wait 3-5 minutes for NFSv3 service to start</li>
+      <li><strong>If NAS is on but unreachable:</strong> Check the network switch and cable connections</li>
+      <li>Once NAS is reachable, remount all NFS shares:
+        <pre><code>./docs/scripts/network/remount-nfs.sh all</code></pre>
+      </li>
+      <li>Restart affected services:
+        <pre><code># Email RAG
+ssh chris@192.168.1.110 "cd /opt/email-rag && docker compose restart"
+
+# Frigate (if archival was failing)
+ssh root@192.168.1.18 "cd /opt/frigate && docker compose restart"</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>ping -c 3 192.168.1.11
+ssh chris@192.168.1.110 "ls /mnt/nfs/volumes/email-rag"
+ssh root@192.168.1.18 "ls /mnt/nfs/frigate"</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 7 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Email RAG VM Corrupted</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li><code>email-rag.uptonx.com</code> or <code>chat.uptonx.com</code> unreachable</li>
+      <li>VM 401 on ai NUC (.69) won't start or SSH fails to .110</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — access ai NUC Proxmox UI or SSH.</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Check VM status from Proxmox:
+        <pre><code>ssh root@192.168.1.69 "qm status 401"
+# If stopped:
+ssh root@192.168.1.69 "qm start 401"</code></pre>
+      </li>
+      <li>If VM boots but services are down:
+        <pre><code>ssh chris@192.168.1.110 "cd /opt/email-rag && docker compose up -d"</code></pre>
+      </li>
+      <li>If NFS is stale:
+        <pre><code>./docs/scripts/network/remount-nfs.sh email-rag</code></pre>
+      </li>
+      <li>If VM is completely unrecoverable:
+        <ul>
+          <li>Restore from PBS backup: <code>ssh root@192.168.1.69 "qmrestore /path/to/backup 401"</code></li>
+          <li>Or rebuild: Create new Ubuntu 24.04 VM, follow <code>vm/email-rag/</code> setup in repo</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>curl -s http://192.168.1.110:3000/health
+curl -s http://192.168.1.110:8080  # Open WebUI</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 8 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Network Misconfiguration (Can't Reach Anything)</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>Multiple hosts unreachable, DNS not resolving</li>
+      <li>Gateway (.1) may or may not be reachable</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>Ubuntu 24.04 Live ISO</strong> — boot on the workstation for a clean network stack.</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Boot Ubuntu Live from USB on the workstation</li>
+      <li>Check basic connectivity:
+        <pre><code># Can we reach the gateway?
+ping 192.168.1.1
+
+# Can we reach any Proxmox host?
+ping 192.168.1.18  # aux
+ping 192.168.1.77  # helm
+ping 192.168.1.80  # aux2</code></pre>
+      </li>
+      <li>If gateway is unreachable:
+        <ul>
+          <li>Check physical cable from workstation to switch</li>
+          <li>Check UniFi Cloud Gateway (.1) — power cycle if needed</li>
+          <li>Login: <code>admin / Terry1987!!!</code></li>
+        </ul>
+      </li>
+      <li>If gateway works but hosts are down:
+        <ul>
+          <li>Check TP-Link switch (.13) — VLAN config may be wrong</li>
+          <li>Verify Proxmox hosts are powered on</li>
+        </ul>
+      </li>
+      <li>If DNS is the issue:
+        <pre><code>./docs/scripts/network/fix-dns.sh</code></pre>
+      </li>
+      <li>Verify DNS config:
+        <pre><code># All hosts should use Technitium (.51) as DNS
+# If systemd-resolved is pointing elsewhere, fix:
+sudo resolvectl dns eth0 192.168.1.51</code></pre>
+      </li>
+    </ol>
+
+    <h4>Verification</h4>
+    <pre><code>ping 192.168.1.1   # gateway
+ping 192.168.1.51  # DNS
+dig @192.168.1.51 uptonx.com  # should resolve to .15</code></pre>
+  </div>
+</div>
+
+<!-- Scenario 9 -->
+<div class="scenario">
+  <div class="scenario-header">Scenario: Full Homelab Power Loss / Cold Boot</div>
+  <div class="scenario-body">
+    <h4>Symptoms</h4>
+    <ul>
+      <li>Everything is off — complete power failure or intentional shutdown</li>
+      <li>Nothing is reachable on the network</li>
+    </ul>
+
+    <h4>Boot</h4>
+    <p><strong>No ISO needed</strong> — follow the Cold Boot Sequence in Section 4.</p>
+
+    <h4>Steps</h4>
+    <p>See <strong>Section 4 — Cold Boot Sequence</strong> for the complete ordered startup procedure.</p>
+  </div>
+</div>
+
+
+<!-- ==================== SECTION 4 ==================== -->
+<div class="section-banner">
+  <span class="badge">4</span>
+  <h2>Cold Boot Sequence</h2>
+  <span class="subtitle">Correct order to bring up UptonX from completely powered off</span>
+</div>
+
+<div class="box box-warning">
+  <strong>Order matters!</strong>
+  Services have dependencies. Starting things out of order will cause cascading failures. Follow this sequence exactly.
+</div>
+
+<h3>Complete Startup Order</h3>
+
+<table>
+  <tr>
+    <th>Step</th>
+    <th>Action</th>
+    <th>Wait For</th>
+    <th>Verify</th>
+  </tr>
+  <tr>
+    <td><strong>1</strong></td>
+    <td>Power on <strong>NAS</strong> (192.168.1.11)</td>
+    <td>3-5 min for NFS shares to be available</td>
+    <td><code>ping 192.168.1.11</code></td>
+  </tr>
+  <tr>
+    <td><strong>2</strong></td>
+    <td>Power on <strong>UniFi Gateway</strong> (.1) and <strong>switches</strong></td>
+    <td>2-3 min for DHCP and routing</td>
+    <td><code>ping 192.168.1.1</code></td>
+  </tr>
+  <tr>
+    <td><strong>3</strong></td>
+    <td>Power on Proxmox: <strong>aux2</strong> (.80) first</td>
+    <td>2-3 min for Proxmox to boot</td>
+    <td><code>https://192.168.1.80:8006</code></td>
+  </tr>
+  <tr>
+    <td><strong>4</strong></td>
+    <td>Power on Proxmox: <strong>aux</strong> (.18), <strong>helm</strong> (.77)</td>
+    <td>2-3 min each</td>
+    <td>Web UI on each host</td>
+  </tr>
+  <tr>
+    <td><strong>5</strong></td>
+    <td>Power on Proxmox: <strong>ai</strong> (.69), <strong>msi</strong> (.74)</td>
+    <td>2-3 min each</td>
+    <td>Web UI / SSH</td>
+  </tr>
+  <tr>
+    <td><strong>6</strong></td>
+    <td>Start <strong>CT 101</strong> (Technitium DNS) on aux2</td>
+    <td>30 sec</td>
+    <td><code>dig @192.168.1.51 uptonx.com</code></td>
+  </tr>
+  <tr>
+    <td><strong>7</strong></td>
+    <td>Start <strong>CT 102</strong> (Traefik) on aux2</td>
+    <td>30 sec</td>
+    <td><code>curl -s https://uptonx.com</code></td>
+  </tr>
+  <tr>
+    <td><strong>8</strong></td>
+    <td>Start Swarm managers: <strong>CT 106</strong> (aux), <strong>CT 109</strong> (helm), <strong>CT 110</strong> (aux2)</td>
+    <td>1-2 min for Raft consensus</td>
+    <td><code>ssh root@192.168.1.23 "docker node ls"</code></td>
+  </tr>
+  <tr>
+    <td><strong>9</strong></td>
+    <td>Verify <strong>Swarm quorum</strong> (3 managers Ready)</td>
+    <td>—</td>
+    <td>All 3 managers show "Leader" or "Reachable"</td>
+  </tr>
+  <tr>
+    <td><strong>10</strong></td>
+    <td>Verify <strong>workers</strong> (.74, .69, .95) are Ready</td>
+    <td>—</td>
+    <td><code>docker node ls</code> — all 6 nodes Ready</td>
+  </tr>
+  <tr>
+    <td><strong>11</strong></td>
+    <td>Check Swarm <strong>stacks are running</strong></td>
+    <td>—</td>
+    <td><code>docker service ls</code> — correct replicas</td>
+  </tr>
+  <tr>
+    <td><strong>12</strong></td>
+    <td>If stacks need redeployment: <code>./swarm/deploy-all.sh</code></td>
+    <td>1-2 min</td>
+    <td><code>docker stack ls</code></td>
+  </tr>
+  <tr>
+    <td><strong>13</strong></td>
+    <td>Start <strong>Frigate</strong> on aux (.18)</td>
+    <td>30-60 sec</td>
+    <td><code>curl http://192.168.1.18:5000/api/version</code></td>
+  </tr>
+  <tr>
+    <td><strong>14</strong></td>
+    <td>Start <strong>Video AI</strong> stack on ai NUC (.69)</td>
+    <td>1-2 min</td>
+    <td><code>curl http://192.168.1.69:8000</code></td>
+  </tr>
+  <tr>
+    <td><strong>15</strong></td>
+    <td>Start <strong>Email RAG</strong> VM 401 on ai NUC</td>
+    <td>1-2 min</td>
+    <td><code>curl http://192.168.1.110:3000</code></td>
+  </tr>
+  <tr>
+    <td><strong>16</strong></td>
+    <td>Remount <strong>NFS shares</strong> if stale</td>
+    <td>—</td>
+    <td><code>./docs/scripts/network/remount-nfs.sh all</code></td>
+  </tr>
+  <tr>
+    <td><strong>17</strong></td>
+    <td>Verify all <strong>*.uptonx.com</strong> URLs</td>
+    <td>—</td>
+    <td>See URL checklist below</td>
+  </tr>
+  <tr>
+    <td><strong>18</strong></td>
+    <td>Verify <strong>Home Assistant</strong> (.14)</td>
+    <td>—</td>
+    <td><code>http://192.168.1.14:8123</code></td>
+  </tr>
+  <tr>
+    <td><strong>19</strong></td>
+    <td>Check <strong>HA tablet</strong> (.91) reconnects</td>
+    <td>—</td>
+    <td>Tablet shows dashboard</td>
+  </tr>
+</table>
+
+<h3>URL Verification Checklist</h3>
+
+<table>
+  <tr>
+    <th>URL</th>
+    <th>Service</th>
+    <th>Expected</th>
+  </tr>
+  <tr><td><code>https://uptonx.com</code></td><td>Landing page</td><td>200 OK</td></tr>
+  <tr><td><code>https://whoami.uptonx.com</code></td><td>Whoami (test)</td><td>200 OK</td></tr>
+  <tr><td><code>https://portainer.uptonx.com</code></td><td>Portainer</td><td>Login page</td></tr>
+  <tr><td><code>https://status.uptonx.com</code></td><td>Uptime Kuma</td><td>Status page</td></tr>
+  <tr><td><code>https://grafana.uptonx.com</code></td><td>Grafana</td><td>Login page</td></tr>
+  <tr><td><code>https://frigate.uptonx.com</code></td><td>Frigate NVR</td><td>Camera dashboard</td></tr>
+  <tr><td><code>https://email-rag.uptonx.com</code></td><td>Email RAG API</td><td>200 OK</td></tr>
+  <tr><td><code>https://chat.uptonx.com</code></td><td>Open WebUI</td><td>Chat interface</td></tr>
+  <tr><td><code>https://audio.uptonx.com</code></td><td>Audio Pipeline</td><td>200 OK</td></tr>
+  <tr><td><code>https://dt.uptonx.com</code></td><td>Double-Take</td><td>Dashboard</td></tr>
+  <tr><td><code>https://faces.uptonx.com</code></td><td>CompreFace</td><td>API response</td></tr>
+  <tr><td><code>https://n8n.uptonx.com</code></td><td>n8n</td><td>Login page</td></tr>
+  <tr><td><code>https://infisical.uptonx.com</code></td><td>Infisical</td><td>Login page</td></tr>
+</table>
+
+<h4>Quick verification one-liner</h4>
+<pre><code>for url in uptonx.com whoami.uptonx.com portainer.uptonx.com \
+  status.uptonx.com grafana.uptonx.com frigate.uptonx.com \
+  email-rag.uptonx.com chat.uptonx.com audio.uptonx.com \
+  dt.uptonx.com faces.uptonx.com n8n.uptonx.com infisical.uptonx.com; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "https://$url")
+  printf "%-30s %s\n" "$url" "$code"
+done</code></pre>
+
+
+<!-- ==================== SECTION 5 ==================== -->
+<div class="section-banner">
+  <span class="badge">5</span>
+  <h2>Emergency Credentials</h2>
+  <span class="subtitle">Print-ready credentials card — keep with the USB stick</span>
+</div>
+
+<div class="box box-danger">
+  <strong>SENSITIVE — Handle with care</strong>
+  This page contains all infrastructure credentials. Keep the printed copy with the USB stick in a secure location. Destroy old copies when credentials change.
+</div>
+
+<div class="cred-card">
+  <h3>Proxmox Hosts</h3>
+  <table>
+    <tr><th>Host</th><th>IP</th><th>User</th><th>Password</th><th>Web UI</th></tr>
+    <tr><td>helm</td><td>192.168.1.77</td><td>root</td><td>Terry87!</td><td>:8006</td></tr>
+    <tr><td>aux</td><td>192.168.1.18</td><td>root</td><td>Terry87!</td><td>:8006</td></tr>
+    <tr><td>aux2</td><td>192.168.1.80</td><td>root</td><td>Terry87!</td><td>:8006</td></tr>
+    <tr><td>ai (NUC)</td><td>192.168.1.69</td><td>root</td><td>Terry87!</td><td>:8006</td></tr>
+    <tr><td>msi</td><td>192.168.1.74</td><td>root</td><td>Terry87!</td><td>:8006</td></tr>
+    <tr><td>PBS</td><td>192.168.1.19</td><td>root</td><td>Terry87!</td><td>:8007</td></tr>
+  </table>
+</div>
+
+<div class="cred-card">
+  <h3>LXC Containers</h3>
+  <table>
+    <tr><th>Container</th><th>IP</th><th>Root Password</th></tr>
+    <tr><td>CT 101 (Technitium DNS)</td><td>192.168.1.51</td><td>Terry87!</td></tr>
+    <tr><td>CT 102 (Traefik)</td><td>192.168.1.15</td><td>Terry87!</td></tr>
+    <tr><td>CT 106 (Swarm Mgr 1)</td><td>192.168.1.23</td><td>Terry87!</td></tr>
+    <tr><td>CT 109 (Swarm Mgr 2)</td><td>192.168.1.26</td><td>Terry87!</td></tr>
+    <tr><td>CT 110 (Swarm Mgr 3)</td><td>192.168.1.27</td><td>Terry87!</td></tr>
+  </table>
+</div>
+
+<div class="cred-card">
+  <h3>VMs &amp; Services</h3>
+  <table>
+    <tr><th>Service</th><th>IP / URL</th><th>User</th><th>Password</th></tr>
+    <tr><td>Email RAG VM</td><td>192.168.1.110</td><td>chris</td><td>Zooey87!</td></tr>
+    <tr><td>Home Assistant</td><td>192.168.1.14:8123</td><td>chris</td><td>Zooey87!</td></tr>
+    <tr><td>HA SSH</td><td>192.168.1.14:22</td><td>root</td><td>Terry87!</td></tr>
+    <tr><td>Fully Kiosk</td><td>192.168.1.91:2323</td><td>—</td><td>Terry87! (PIN: 8787)</td></tr>
+    <tr><td>NAS</td><td>192.168.1.11</td><td>chris-admin</td><td>—</td></tr>
+  </table>
+</div>
+
+<div class="cred-card">
+  <h3>Network Infrastructure</h3>
+  <table>
+    <tr><th>Device</th><th>IP</th><th>User</th><th>Password</th></tr>
+    <tr><td>UniFi Cloud Gateway</td><td>192.168.1.1</td><td>admin</td><td>Terry1987!!!</td></tr>
+    <tr><td>TP-Link Switch</td><td>192.168.1.13</td><td>admin</td><td>(default)</td></tr>
+    <tr><td>Technitium DNS UI</td><td>192.168.1.51:5380</td><td>admin</td><td>Terry87!</td></tr>
+  </table>
+</div>
+
+<div class="cred-card">
+  <h3>Cameras (VLAN 40)</h3>
+  <table>
+    <tr><th>Camera</th><th>IP</th><th>User</th><th>Password</th></tr>
+    <tr><td>Reolink Front</td><td>192.168.40.11</td><td>admin</td><td>Terry!87</td></tr>
+    <tr><td>Reolink Side</td><td>192.168.40.12</td><td>admin</td><td>Terry!87</td></tr>
+    <tr><td>Reolink Back</td><td>192.168.40.13</td><td>admin</td><td>Terry!87</td></tr>
+    <tr><td>Tapo Indoor</td><td>192.168.40.19</td><td>chris87</td><td>Terry!87</td></tr>
+    <tr><td>EZVIZ Doorbell</td><td>192.168.40.50</td><td>—</td><td>(app-managed)</td></tr>
+  </table>
+</div>
+
+<div class="cred-card">
+  <h3>External / Git</h3>
+  <table>
+    <tr><th>Service</th><th>URL</th><th>Notes</th></tr>
+    <tr><td>Gitea</td><td>http://192.168.1.58:3000</td><td>Homelab repo source of truth</td></tr>
+    <tr><td>Cloudflare</td><td>dash.cloudflare.com</td><td>DNS + tunnel for uptonx.com</td></tr>
+    <tr><td>Infisical</td><td>https://infisical.uptonx.com</td><td>Secrets management</td></tr>
+  </table>
+</div>
+
+
+<!-- ==================== SECTION 6 ==================== -->
+<div class="section-banner">
+  <span class="badge">6</span>
+  <h2>Physical USB Maintenance</h2>
+  <span class="subtitle">Keeping the recovery USB current and accessible</span>
+</div>
+
+<h3>How to Update ISOs on Ventoy</h3>
+
+<ol>
+  <li>Plug in the recovery USB on the workstation</li>
+  <li>Mount the Ventoy partition:
+    <pre><code>sudo mount /dev/sdX1 /mnt/ventoy</code></pre>
+  </li>
+  <li>Replace old ISOs with new versions in <code>/mnt/ventoy/iso/</code></li>
+  <li>Update Ventoy bootloader if needed:
+    <pre><code>cd ~/ventoy-*
+sudo ./Ventoy2Disk.sh -u /dev/sdX   # preserves data</code></pre>
+  </li>
+  <li>Unmount: <code>sudo umount /mnt/ventoy</code></li>
+</ol>
+
+<h3>How to Sync Latest Scripts from Gitea</h3>
+
+<pre><code># Mount the UPTONX-RECOVERY partition
+sudo mount /dev/sdX3 /mnt/recovery
+
+# Clone or pull latest from Gitea
+cd /tmp
+git clone http://192.168.1.58:3000/chris/uptonx-homelab.git
+# Or if already cloned:
+cd uptonx-homelab && git pull
+
+# Sync scripts to USB
+rsync -av --delete docs/scripts/ /mnt/recovery/scripts/
+
+# Copy latest PDF
+cp docs/recovery-usb-manual.pdf /mnt/recovery/docs/
+
+# Unmount
+sudo umount /mnt/recovery</code></pre>
+
+<div class="box box-info">
+  <strong>Automated sync script</strong>
+  Create a simple script on the workstation to automate this:
+  <pre><code>#!/bin/bash
+# sync-recovery-usb.sh
+USB_PART=$(lsblk -o NAME,LABEL -nr | grep UPTONX-RECOVERY | awk '{print $1}')
+if [ -z "$USB_PART" ]; then echo "USB not found!"; exit 1; fi
+sudo mount "/dev/$USB_PART" /mnt/recovery
+cd ~/uptonx-homelab && git pull
+rsync -av --delete docs/scripts/ /mnt/recovery/scripts/
+cp docs/recovery-usb-manual.pdf /mnt/recovery/docs/
+sudo umount /mnt/recovery
+echo "Sync complete!"</code></pre>
+</div>
+
+<h3>Recommended: Keep Two USB Sticks</h3>
+
+<ul>
+  <li><strong>USB #1:</strong> Keep with the homelab rack — immediate access during emergencies</li>
+  <li><strong>USB #2:</strong> Keep offsite (office, safe deposit box) — disaster recovery</li>
+  <li>Update both whenever you sync scripts or update ISOs</li>
+  <li>Both should contain identical ISOs and scripts</li>
+</ul>
+
+<h3>Label and Date the USB Stick</h3>
+
+<p>Use a label maker or permanent marker. Include:</p>
+
+<div class="usb-label">
+  <h4>UPTONX RECOVERY</h4>
+  <p><strong>Ventoy Multi-Boot + Scripts</strong></p>
+  <p>Last Updated: _____ / _____ / _____</p>
+  <p>ISOs: Ubuntu 24.04 | SystemRescue | Clonezilla | Proxmox VE | memtest86+</p>
+  <p style="font-size: 8pt; margin-top: 6pt;">Boot from USB → select ISO → mount UPTONX-RECOVERY for scripts</p>
+</div>
+
+<h3>Quarterly Maintenance Checklist</h3>
+
+<table>
+  <tr><th>Task</th><th>Frequency</th></tr>
+  <tr><td>Check for new ISO versions and update</td><td>Quarterly</td></tr>
+  <tr><td>Sync scripts from Gitea</td><td>After any infra change</td></tr>
+  <tr><td>Update Ventoy bootloader</td><td>When new version available</td></tr>
+  <tr><td>Test-boot on a spare machine</td><td>Quarterly</td></tr>
+  <tr><td>Verify scripts still work (dry run)</td><td>Quarterly</td></tr>
+  <tr><td>Update credentials if changed</td><td>Immediately</td></tr>
+  <tr><td>Sync offsite USB copy</td><td>After any update</td></tr>
+  <tr><td>Update "Last Updated" date on label</td><td>After any update</td></tr>
+</table>
+
+</body>
+</html>
