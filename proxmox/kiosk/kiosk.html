@@ -8,202 +8,326 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #0a0a0f; color: #e0e0e0; font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; overflow: hidden; height: 100vh; }
 
-  /* Page container */
   .page { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 56px; overflow: hidden; }
   .page.active { display: flex; flex-direction: column; }
 
-  /* Camera grid */
-  .cam-grid { display: grid; flex: 1; gap: 4px; padding: 4px; }
-  .cam-grid.cols-3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr; }
-  .cam-grid.cols-2x2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+  /* Header bar */
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(10,10,15,0.95), rgba(10,10,15,0.4)); }
+  .header-title { font-size: 14px; font-weight: 700; color: #00e5ff; text-transform: uppercase; letter-spacing: 1.5px; }
+  .header-clock { font-size: 14px; font-weight: 600; color: #585b70; font-variant-numeric: tabular-nums; }
+
+  /* 2x2 camera grid */
+  .cam-grid { display: grid; flex: 1; gap: 4px; padding: 0 4px 4px;
+    grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
   .cam-cell { position: relative; background: #111118; border-radius: 6px; overflow: hidden; }
   .cam-cell img { width: 100%; height: 100%; object-fit: cover; }
-  .cam-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.85)); font-size: 13px; font-weight: 600; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
-  .cam-cell.offline img { opacity: 0.3; }
-  .cam-cell.offline::after { content: 'OFFLINE'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ff4444; font-size: 18px; font-weight: 700; }
+  .cam-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    font-size: 13px; font-weight: 600; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cam-age { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.75);
+    padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #585b70; }
+  .cam-age.recent { color: #a6e3a1; background: rgba(166,227,161,0.15); }
+  .cam-age.stale { color: #f9e2af; background: rgba(249,226,175,0.15); }
+  .cam-cell .live-dot { position: absolute; top: 10px; left: 10px; width: 8px; height: 8px;
+    border-radius: 50%; background: #f38ba8; animation: livePulse 1.5s infinite; }
+  .cam-cell .live-dot.active { background: #a6e3a1; }
+  @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  /* Iframe pages */
-  .page iframe { flex: 1; border: none; background: #111; }
+  .no-feed { display: flex; align-items: center; justify-content: center;
+    color: #333; font-size: 16px; font-weight: 600; letter-spacing: 1px;
+    grid-column: 1 / -1; grid-row: 1 / -1; }
 
-  /* System stats page */
-  .stats-page { padding: 16px; overflow-y: auto; }
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .host-card { background: #111118; border-radius: 8px; padding: 16px; border: 1px solid #1a1a2e; }
-  .host-card h3 { font-size: 16px; color: #00e5ff; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-  .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .stat-label { font-size: 12px; color: #888; text-transform: uppercase; }
-  .stat-value { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat-bar { height: 6px; background: #1a1a2e; border-radius: 3px; margin-top: 4px; overflow: hidden; }
-  .stat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-  .stat-bar-fill.cpu { background: linear-gradient(90deg, #00e5ff, #00b8d4); }
-  .stat-bar-fill.mem { background: linear-gradient(90deg, #7c4dff, #651fff); }
-  .stat-bar-fill.high { background: linear-gradient(90deg, #ff9100, #ff3d00); }
-  .uptime-text { font-size: 11px; color: #666; margin-top: 4px; }
+  /* Status panel */
+  .status-page { padding: 0; overflow-y: auto; }
+  .status-header { display: flex; align-items: center; gap: 16px; padding: 12px 16px; flex-shrink: 0; }
+  .status-section { padding: 0 16px 16px; }
+  .status-section h2 { font-size: 12px; color: #585b70; text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #1a1a2e; }
+  .status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .svc-card { display: flex; align-items: center; gap: 12px; background: #111118; border-radius: 8px;
+    padding: 14px 16px; border: 1px solid #1a1a2e; transition: border-color 0.3s; }
+  .svc-card.down { border-color: rgba(243,139,168,0.3); }
+  .svc-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor; }
+  .svc-dot.up { background: #a6e3a1; color: #a6e3a1; }
+  .svc-dot.down { background: #f38ba8; color: #f38ba8; animation: pulse 1.5s infinite; }
+  .svc-dot.pending { background: #585b70; color: #585b70; }
+  .svc-info { flex: 1; min-width: 0; }
+  .svc-name { font-size: 14px; font-weight: 600; color: #cdd6f4; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .svc-detail { font-size: 11px; color: #585b70; margin-top: 2px; }
+  .svc-ms { font-size: 12px; color: #585b70; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+  .summary-pill { background: #111118; border: 1px solid #1a1a2e; border-radius: 20px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .summary-pill .count { font-size: 20px; font-weight: 700; }
+  .summary-pill.ok .count { color: #a6e3a1; }
+  .summary-pill.err .count { color: #f38ba8; }
+  .summary-pill.err { border-color: rgba(243,139,168,0.3); }
+  .status-time { font-size: 11px; color: #45475a; margin-left: auto; }
+
+  /* Grafana iframe page */
+  .grafana-frame { flex: 1; border: none; background: #0a0a0f; }
 
   /* Tab bar */
-  .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 56px; background: #0d0d14; border-top: 1px solid #1a1a2e; display: flex; z-index: 100; }
-  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #555; transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
+  .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+    background: #0d0d14; border-top: 1px solid #1a1a2e; display: flex; z-index: 100; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; color: #45475a; transition: color 0.2s; -webkit-tap-highlight-color: transparent; position: relative; }
   .tab.active { color: #00e5ff; }
   .tab svg { width: 22px; height: 22px; margin-bottom: 2px; }
   .tab span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tab-badge { display: none; position: absolute; top: 4px; right: calc(50% - 22px);
+    min-width: 8px; height: 8px; border-radius: 50%; }
+  .tab-badge.on { display: block; animation: pulse 2s infinite; }
+  .tab-badge.green { background: #a6e3a1; }
+  .tab-badge.red { background: #f38ba8; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* Auto-rotate indicator */
-  .rotate-btn { position: fixed; top: 8px; right: 8px; z-index: 200; background: rgba(0,0,0,0.6); border: 1px solid #333; border-radius: 20px; padding: 4px 12px; color: #888; font-size: 11px; cursor: pointer; }
+  .rotate-btn { position: fixed; top: 8px; right: 8px; z-index: 200;
+    background: rgba(0,0,0,0.6); border: 1px solid #333; border-radius: 20px;
+    padding: 4px 12px; color: #585b70; font-size: 11px; cursor: pointer; }
   .rotate-btn.on { color: #00e5ff; border-color: #00e5ff; }
+
+  /* Page transition */
+  .page { opacity: 0; transition: opacity 0.3s ease; }
+  .page.active { opacity: 1; }
 </style>
 </head>
 <body>
 
-<!-- Page 1: Outdoor Cameras (Reolinks) -->
-<div class="page" id="page-outdoor">
-  <div class="cam-grid cols-3">
-    <div class="cam-cell" id="cam-reolink_86"><img><div class="cam-label">Reolink 86</div></div>
-    <div class="cam-cell" id="cam-reolink_87"><img><div class="cam-label">Reolink 87</div></div>
-    <div class="cam-cell" id="cam-reolink_85"><img><div class="cam-label">Reolink 85</div></div>
+<!-- Page 1: Cameras -->
+<div class="page" id="page-cameras">
+  <div class="header">
+    <div class="header-title">Cameras</div>
+    <div class="header-clock" id="clock-cameras"></div>
+  </div>
+  <div class="cam-grid" id="cam-grid">
+    <div class="no-feed">LOADING...</div>
   </div>
 </div>
 
-<!-- Page 2: Nest Cameras -->
-<div class="page" id="page-nest">
-  <div class="cam-grid cols-3">
-    <div class="cam-cell" id="cam-nest_entrance"><img><div class="cam-label">Entrance</div></div>
-    <div class="cam-cell" id="cam-nest_living_north"><img><div class="cam-label">Living North</div></div>
-    <div class="cam-cell" id="cam-nest_living_south"><img><div class="cam-label">Living South</div></div>
-  </div>
+<!-- Page 2: Status -->
+<div class="page status-page" id="page-status">
+  <div class="status-header" id="status-summary"></div>
+  <div id="status-sections"></div>
 </div>
 
-<!-- Page 3: Indoor Cameras -->
-<div class="page" id="page-indoor">
-  <div class="cam-grid cols-2x2">
-    <div class="cam-cell" id="cam-tapo_46"><img><div class="cam-label">Tapo 46</div></div>
-    <div class="cam-cell" id="cam-eufy_kitchen"><img><div class="cam-label">Eufy Kitchen</div></div>
-    <div class="cam-cell" id="cam-eufy_living_north"><img><div class="cam-label">Eufy Living N</div></div>
-    <div class="cam-cell" id="cam-eufy_living_south"><img><div class="cam-label">Eufy Living S</div></div>
-  </div>
+<!-- Page 3: Grafana -->
+<div class="page" id="page-grafana">
+  <iframe class="grafana-frame" id="grafana-iframe"
+    src="about:blank"
+    allow="fullscreen"></iframe>
 </div>
 
-<!-- Page 4: Uptime Kuma -->
-<div class="page" id="page-status">
-  <iframe src="http://127.0.0.1:3001/status/homelab" id="kuma-frame" loading="lazy"></iframe>
-</div>
-
-<!-- Page 5: System Stats -->
-<div class="page stats-page" id="page-system">
-  <div class="stats-grid" id="stats-grid"></div>
-</div>
-
-<!-- Auto-rotate button -->
 <div class="rotate-btn on" id="rotate-btn" onclick="toggleRotate()">AUTO</div>
 
-<!-- Tab Bar -->
 <div class="tab-bar">
-  <div class="tab active" onclick="showPage('outdoor')" data-page="outdoor">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
-    <span>Outdoor</span>
-  </div>
-  <div class="tab" onclick="showPage('nest')" data-page="nest">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    <span>Nest</span>
-  </div>
-  <div class="tab" onclick="showPage('indoor')" data-page="indoor">
+  <div class="tab active" onclick="showPage('cameras')" data-page="cameras">
+    <div class="tab-badge green" id="cam-badge"></div>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-    <span>Indoor</span>
+    <span>Cameras</span>
   </div>
   <div class="tab" onclick="showPage('status')" data-page="status">
+    <div class="tab-badge red" id="status-badge"></div>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
     <span>Status</span>
   </div>
-  <div class="tab" onclick="showPage('system')" data-page="system">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    <span>System</span>
+  <div class="tab" onclick="showPage('grafana')" data-page="grafana">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    <span>Metrics</span>
   </div>
 </div>
 
 <script>
 const FRIGATE = 'http://192.168.1.18:5000';
 const STATS_API = 'http://127.0.0.1:8088';
-const CAMERAS = [
-  'reolink_86','reolink_87','reolink_85',
-  'nest_entrance','nest_living_north','nest_living_south',
-  'tapo_46','eufy_kitchen','eufy_living_north','eufy_living_south'
-];
-const PAGES = ['outdoor','nest','indoor','status','system'];
-const ROTATE_INTERVAL = 30000;
+const GRAFANA_URL = 'http://192.168.1.69:3002/d/642cb69c-e37e-4468-b7f5-0c3ab9b84368/homelab-overview?kiosk&theme=dark&refresh=10s';
 
-let currentPage = 'outdoor';
+const CAM_LABELS = {
+  reolink_85: 'Front Yard', reolink_86: 'Side Yard', reolink_87: 'Back Yard',
+  nest_entrance: 'Entrance', nest_living_north: 'Living North', nest_living_south: 'Living South',
+  tapo_46: 'Tapo Indoor',
+  eufy_kitchen: 'Eufy Kitchen', eufy_living_north: 'Eufy Living North', eufy_living_south: 'Eufy Living South'
+};
+
+const PAGES = ['cameras', 'status', 'grafana'];
+const ROTATE_INTERVAL = 30000;
+let currentPage = 'cameras';
 let autoRotate = true;
 let rotateTimer = null;
+let currentCamKey = '';
+let grafanaLoaded = false;
+
+// Clock
+function updateClocks() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const str = date + '  ' + time;
+  document.querySelectorAll('[id^="clock-"]').forEach(el => el.textContent = str);
+}
+setInterval(updateClocks, 1000);
+updateClocks();
 
 function showPage(name) {
   currentPage = name;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
+  // Lazy-load Grafana iframe on first visit
+  if (name === 'grafana' && !grafanaLoaded) {
+    document.getElementById('grafana-iframe').src = GRAFANA_URL;
+    grafanaLoaded = true;
+  }
   resetRotateTimer();
 }
 
 function toggleRotate() {
   autoRotate = !autoRotate;
   document.getElementById('rotate-btn').classList.toggle('on', autoRotate);
-  if (autoRotate) resetRotateTimer();
-  else clearTimeout(rotateTimer);
+  document.getElementById('rotate-btn').textContent = autoRotate ? 'AUTO' : 'MANUAL';
+  if (autoRotate) resetRotateTimer(); else clearTimeout(rotateTimer);
 }
 
 function resetRotateTimer() {
   clearTimeout(rotateTimer);
-  if (autoRotate) {
-    rotateTimer = setTimeout(() => {
-      const idx = (PAGES.indexOf(currentPage) + 1) % PAGES.length;
-      showPage(PAGES[idx]);
-    }, ROTATE_INTERVAL);
-  }
+  if (!autoRotate) return;
+  rotateTimer = setTimeout(() => {
+    const idx = (PAGES.indexOf(currentPage) + 1) % PAGES.length;
+    showPage(PAGES[idx]);
+  }, ROTATE_INTERVAL);
 }
 
-// Camera snapshot refresh
+// Refresh snapshots
 function refreshCameras() {
+  if (currentPage !== 'cameras') return; // skip when not visible
   const ts = Date.now();
-  CAMERAS.forEach(cam => {
-    const cell = document.getElementById('cam-' + cam);
-    if (!cell) return;
+  document.querySelectorAll('.cam-cell[data-cam]').forEach(cell => {
+    const cam = cell.dataset.cam;
     const img = cell.querySelector('img');
     const newImg = new Image();
-    newImg.onload = function() {
-      img.src = this.src;
-      cell.classList.remove('offline');
-    };
-    newImg.onerror = function() {
-      cell.classList.add('offline');
-    };
-    newImg.src = FRIGATE + '/api/' + cam + '/latest.jpg?h=480&ts=' + ts;
+    newImg.onload = function() { img.src = this.src; };
+    newImg.src = FRIGATE + '/api/' + cam + '/latest.jpg?h=720&ts=' + ts;
   });
 }
 
-// System stats
-function refreshStats() {
-  fetch(STATS_API + '/api/stats')
+function timeAgo(epochSec) {
+  const diff = Math.floor(Date.now() / 1000 - epochSec);
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function checkCameras() {
+  fetch(FRIGATE + '/api/events?limit=100&label=person')
     .then(r => r.json())
-    .then(hosts => {
-      const grid = document.getElementById('stats-grid');
-      grid.innerHTML = '';
-      hosts.forEach(h => {
-        const cpuClass = h.cpu > 80 ? 'high' : 'cpu';
-        const memClass = h.mem_pct > 80 ? 'high' : 'mem';
-        grid.innerHTML += `
-          <div class="host-card">
-            <h3>${h.name}</h3>
-            <div class="stat-row"><span class="stat-label">CPU</span><span class="stat-value">${h.cpu.toFixed(1)}%</span></div>
-            <div class="stat-bar"><div class="stat-bar-fill ${cpuClass}" style="width:${h.cpu}%"></div></div>
-            <div class="stat-row" style="margin-top:12px"><span class="stat-label">Memory</span><span class="stat-value">${h.mem_used} / ${h.mem_total}</span></div>
-            <div class="stat-bar"><div class="stat-bar-fill ${memClass}" style="width:${h.mem_pct}%"></div></div>
-            <div class="stat-row" style="margin-top:12px"><span class="stat-label">Load</span><span class="stat-value">${h.load || '-'}</span></div>
-            <div class="uptime-text">Up ${h.uptime || '-'}</div>
-          </div>`;
-      });
+    .then(events => {
+      const latest = {};
+      for (const e of events) {
+        const cam = e.camera;
+        if (!cam || !CAM_LABELS[cam]) continue;
+        if (!latest[cam] || e.start_time > latest[cam]) {
+          latest[cam] = e.start_time;
+        }
+      }
+
+      const sorted = Object.entries(latest)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4);
+
+      const key = sorted.map(([c]) => c).join(',');
+      if (key === currentCamKey) {
+        sorted.forEach(([cam, ts]) => {
+          const ageEl = document.querySelector(`.cam-cell[data-cam="${cam}"] .cam-age`);
+          const dotEl = document.querySelector(`.cam-cell[data-cam="${cam}"] .live-dot`);
+          if (ageEl) {
+            ageEl.textContent = timeAgo(ts);
+            const diffSec = Date.now() / 1000 - ts;
+            ageEl.className = 'cam-age ' + (diffSec < 300 ? 'recent' : diffSec < 3600 ? 'stale' : '');
+            if (dotEl) dotEl.classList.toggle('active', diffSec < 300);
+          }
+        });
+        return;
+      }
+      currentCamKey = key;
+
+      const grid = document.getElementById('cam-grid');
+      if (sorted.length === 0) {
+        grid.innerHTML = '<div class="no-feed">NO RECENT ACTIVITY</div>';
+        document.getElementById('cam-badge').classList.remove('on');
+        return;
+      }
+
+      grid.innerHTML = sorted.map(([cam, ts]) => {
+        const diffSec = Date.now() / 1000 - ts;
+        const ageClass = diffSec < 300 ? 'recent' : diffSec < 3600 ? 'stale' : '';
+        const dotClass = diffSec < 300 ? 'active' : '';
+        return `<div class="cam-cell" data-cam="${cam}">
+          <img><div class="live-dot ${dotClass}"></div>
+          <div class="cam-age ${ageClass}">${timeAgo(ts)}</div>
+          <div class="cam-label">${CAM_LABELS[cam] || cam}</div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('cam-badge').classList.toggle('on',
+        sorted.some(([, ts]) => Date.now() / 1000 - ts < 300));
+      refreshCameras();
     })
     .catch(() => {});
 }
 
-// Touch swipe support
+// Service health
+let lastDownCount = 0;
+function refreshServices() {
+  fetch(STATS_API + '/api/services')
+    .then(r => r.json())
+    .then(svcs => {
+      const groups = {};
+      svcs.forEach(s => {
+        if (!groups[s.group]) groups[s.group] = [];
+        groups[s.group].push(s);
+      });
+
+      const up = svcs.filter(s => s.online).length;
+      const down = svcs.length - up;
+      lastDownCount = down;
+
+      // Update badge
+      document.getElementById('status-badge').classList.toggle('on', down > 0);
+
+      const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      document.getElementById('status-summary').innerHTML =
+        `<div class="summary-pill ok"><span class="count">${up}</span>operational</div>` +
+        (down > 0 ? `<div class="summary-pill err"><span class="count">${down}</span>down</div>` : '') +
+        `<div class="status-time">Updated ${now}</div>`;
+
+      let html = '';
+      for (const [key, label] of [['services', 'Services'], ['infra', 'Infrastructure']]) {
+        const items = groups[key] || [];
+        if (!items.length) continue;
+        html += `<div class="status-section"><h2>${label}</h2><div class="status-grid">`;
+        items.forEach(s => {
+          const dot = s.online ? 'up' : 'down';
+          const ms = s.online ? s.ms + 'ms' : 'offline';
+          const cardClass = s.online ? '' : ' down';
+          html += `<div class="svc-card${cardClass}">
+            <div class="svc-dot ${dot}"></div>
+            <div class="svc-info"><div class="svc-name">${s.name}</div><div class="svc-detail">${s.detail}</div></div>
+            <div class="svc-ms">${ms}</div>
+          </div>`;
+        });
+        html += '</div></div>';
+      }
+      document.getElementById('status-sections').innerHTML = html;
+    })
+    .catch(() => {});
+}
+
+// Touch swipe
 let touchStartX = 0;
 document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
 document.addEventListener('touchend', e => {
@@ -216,11 +340,12 @@ document.addEventListener('touchend', e => {
 });
 
 // Init
-showPage('outdoor');
-refreshCameras();
-refreshStats();
+showPage('cameras');
+checkCameras();
+refreshServices();
 setInterval(refreshCameras, 2000);
-setInterval(refreshStats, 10000);
+setInterval(checkCameras, 5000);
+setInterval(refreshServices, 15000);
 </script>
 </body>
 </html>

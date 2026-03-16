@@ -13,6 +13,8 @@ TELEGRAM_TOKEN    = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID",  "")
 DB_PATH           = "/data/faces.db"
 CONFIDENCE        = 0.75
+# Only process face recognition on cameras with face-level angles
+FACE_CAMERAS = [s.strip() for s in os.getenv("FACE_CAMERAS", "tapo_46,eufy_living_pan").split(",")]
 
 os.makedirs("/data", exist_ok=True)
 db = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -43,7 +45,7 @@ def recognize_face(snapshot_bytes):
         return None, 0
     try:
         resp = requests.post(
-            f"{COMPREFACE_URL}/api/v1/recognition/faces",
+            f"{COMPREFACE_URL}/api/v1/recognition/recognize?det_prob_threshold=0.3",
             headers={"x-api-key": COMPREFACE_APIKEY},
             files={"file": ("snap.jpg", snapshot_bytes, "image/jpeg")},
             timeout=15)
@@ -96,13 +98,23 @@ def ask_telegram(event_id, camera, snapshot_bytes):
 def process_event(event_id, camera, label, start_time):
     if label != "person":
         return
+    if FACE_CAMERAS and camera not in FACE_CAMERAS:
+        return  # Skip cameras that can't capture faces (overhead mounts)
     if db.execute("SELECT event_id FROM detections WHERE event_id=?", (event_id,)).fetchone():
         return
-    r = requests.get(f"{FRIGATE_URL}/api/events/{event_id}/snapshot.jpg", timeout=10)
+    # Try cropped snapshot first (better face detection), fall back to full
+    r = requests.get(f"{FRIGATE_URL}/api/events/{event_id}/snapshot.jpg?crop=1&quality=95", timeout=10)
     if r.status_code != 200:
         return
     snapshot_bytes = r.content
     name, conf = recognize_face(snapshot_bytes)
+    if not name:
+        # Try full-frame as fallback
+        r2 = requests.get(f"{FRIGATE_URL}/api/events/{event_id}/snapshot.jpg?quality=95", timeout=10)
+        if r2.status_code == 200:
+            name, conf = recognize_face(r2.content)
+            if name:
+                snapshot_bytes = r2.content
     ts = datetime.utcfromtimestamp(start_time).isoformat() if start_time else datetime.utcnow().isoformat()
     if name:
         db.execute("INSERT OR REPLACE INTO detections VALUES (?,?,?,?,?,)",

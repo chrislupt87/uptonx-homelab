@@ -8,13 +8,7 @@ http:
       tls:
         certResolver: cloudflare
 
-    traefik-dashboard:
-      rule: "Host(`traefik.uptonx.com`)"
-      service: traefik-dashboard
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
+    # traefik-dashboard: moved to traefik-dashboard-protected (authentik forward-auth)
 
     email-rag:
       rule: "Host(`email-rag.uptonx.com`)"
@@ -40,13 +34,7 @@ http:
       tls:
         certResolver: cloudflare
 
-    frigate:
-      rule: "Host(`frigate.uptonx.com`)"
-      service: frigate
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
+    # frigate: moved to frigate-protected (authentik forward-auth)
 
     cody:
       rule: "Host(`cody.uptonx.com`)"
@@ -74,15 +62,7 @@ http:
       tls:
         certResolver: cloudflare
 
-    grafana:
-      rule: "Host(`grafana.uptonx.com`)"
-      service: grafana
-      middlewares:
-        - allow-iframe
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
+    # grafana: moved to grafana-protected (authentik forward-auth)
 
     double-take:
       rule: "Host(`dt.uptonx.com`)"
@@ -92,13 +72,7 @@ http:
       tls:
         certResolver: cloudflare
 
-    n8n-video:
-      rule: "Host(`n8n.uptonx.com`)"
-      service: n8n-video
-      entryPoints:
-        - websecure
-      tls:
-        certResolver: cloudflare
+    # n8n-video: moved to n8n-video-protected (authentik forward-auth)
 
     compreface:
       rule: "Host(`faces.uptonx.com`)"
@@ -116,12 +90,98 @@ http:
       tls:
         certResolver: cloudflare
 
+    portainer:
+      rule: "Host(`portainer.uptonx.com`)"
+      service: portainer
+      middlewares:
+        - authentik
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    # --- Authentik SSO ---
+    authentik:
+      rule: "Host(`auth.uptonx.com`)"
+      service: authentik
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    authentik-outpost:
+      rule: "Host(`auth.uptonx.com`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      service: authentik
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    # --- Protected routes (forward-auth via Authentik) ---
+    traefik-dashboard-protected:
+      rule: "Host(`traefik.uptonx.com`)"
+      service: traefik-dashboard
+      middlewares:
+        - authentik
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    grafana-protected:
+      rule: "Host(`grafana.uptonx.com`)"
+      service: grafana
+      middlewares:
+        - authentik
+        - allow-iframe
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    frigate-protected:
+      rule: "Host(`frigate.uptonx.com`)"
+      service: frigate
+      middlewares:
+        - authentik
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
+    n8n-video-protected:
+      rule: "Host(`n8n.uptonx.com`)"
+      service: n8n-video
+      middlewares:
+        - authentik
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+
   middlewares:
     allow-iframe:
       headers:
         customResponseHeaders:
           X-Frame-Options: ""
           Content-Security-Policy: ""
+
+    authentik:
+      forwardAuth:
+        address: "http://192.168.1.16:9000/outpost.goauthentik.io/auth/traefik"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-authentik-username
+          - X-authentik-groups
+          - X-authentik-email
+          - X-authentik-name
+          - X-authentik-uid
+          - X-authentik-jwt
+          - X-authentik-meta-jwks
+          - X-authentik-meta-outpost
+          - X-authentik-meta-provider
+          - X-authentik-meta-app
+          - X-authentik-meta-version
 
   services:
     technitium:
@@ -167,7 +227,7 @@ http:
     status:
       loadBalancer:
         servers:
-          - url: "http://192.168.1.23:3001"
+          - url: "http://192.168.1.69:3001"
 
     grafana:
       loadBalancer:
@@ -193,3 +253,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.69:8093"
+
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.23:9000"
+
+    authentik:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.16:9000"

@@ -107,6 +107,30 @@ services:
       FRIGATE_URL: http://192.168.1.18:5000
       OLLAMA_URL: http://192.168.1.110:11434
       LLAVA_MODEL: llava:13b
+  reid-service:
+    image: python:3.11-slim
+    container_name: reid-service
+    restart: unless-stopped
+    volumes:
+    - /opt/video-ai/reid:/app
+    - /opt/video-ai/reid/data:/data
+    networks:
+    - video-ai
+    working_dir: /app
+    command: "sh -c \"pip install -q requests paho-mqtt pillow numpy qdrant-client torch torchvision open-clip-torch && python reid_service.py\""
+    environment:
+      MQTT_HOST: 192.168.1.18
+      FRIGATE_URL: http://192.168.1.18:5000
+      QDRANT_HOST: qdrant-video
+      QDRANT_PORT: '6333'
+      COMPREFACE_URL: http://compreface:80
+      COMPREFACE_API_KEY: ${COMPREFACE_API_KEY:-}
+      FACE_CAMERAS: tapo_46,eufy_living_pan
+      REID_THRESHOLD: '0.70'
+      REID_TIME_WINDOW: '1800'
+    env_file:
+    - .env
+    mem_limit: 2g
   face-trainer:
     image: python:3.11-slim
     container_name: face-trainer

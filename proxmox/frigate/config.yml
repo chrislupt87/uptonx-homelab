@@ -18,15 +18,17 @@ go2rtc:
     reolink_85_sub:
     - rtsp://admin:Terry!87@192.168.40.13:554/h264Preview_01_sub
     tapo_46:
-    - rtsp://chris87:Terry!87@192.168.40.19:554/stream1
+    - rtsp://chris87:Zooey87!@192.168.40.30:554/stream1
     tapo_46_sub:
-    - rtsp://chris87:Terry!87@192.168.40.19:554/stream2
+    - rtsp://chris87:Zooey87!@192.168.40.30:554/stream2
+    eufy_living_pan:
+    - rtsp://Christopher12345:Frigate123456789@192.168.1.162/live0
     eufy_kitchen:
-    - "exec:/usr/lib/ffmpeg/7.0/bin/ffmpeg -f h265 -i tcp://127.0.0.1:63336 -f aac -i tcp://127.0.0.1:63337 -c:v copy -c:a copy -f rtsp {{output}}"
+    - rtsp://127.0.0.1:8553/eufy_kitchen
     eufy_living_north:
-    - "exec:/usr/lib/ffmpeg/7.0/bin/ffmpeg -f h265 -i tcp://127.0.0.1:63338 -f aac -i tcp://127.0.0.1:63339 -c:v copy -c:a copy -f rtsp {{output}}"
+    - rtsp://127.0.0.1:8553/eufy_living_north
     eufy_living_south:
-    - "exec:/usr/lib/ffmpeg/7.0/bin/ffmpeg -f h265 -i tcp://127.0.0.1:63340 -f aac -i tcp://127.0.0.1:63341 -c:v copy -c:a copy -f rtsp {{output}}"
+    - rtsp://127.0.0.1:8553/eufy_living_south
     # Nest cameras — hardcode credentials on deploy (env var substitution crashes go2rtc)
     # See .env.example for required values. Deploy with: envsubst < config.yml > /etc/frigate/config.yml
     nest_living_north:
@@ -165,6 +167,22 @@ cameras:
       enabled: true
     snapshots:
       enabled: true
+  eufy_living_pan:
+    ffmpeg:
+      inputs:
+      - path: rtsp://127.0.0.1:8554/eufy_living_pan
+        roles:
+        - detect
+        - record
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
+      fps: 10
+    record:
+      enabled: true
+    snapshots:
+      enabled: true
   eufy_kitchen:
     ffmpeg:
       inputs:
@@ -213,6 +231,7 @@ cameras:
       enabled: true
     snapshots:
       enabled: true
+  # Battery Nest cams — alerts/detections only (no continuous recording to save battery)
   nest_living_north:
     ffmpeg:
       inputs:
@@ -227,6 +246,16 @@ cameras:
       fps: 5
     record:
       enabled: true
+      alerts:
+        retain:
+          days: 30
+      detections:
+        retain:
+          days: 30
+      continuous:
+        days: 0
+      motion:
+        days: 0
     snapshots:
       enabled: true
   nest_living_south:
@@ -243,8 +272,19 @@ cameras:
       fps: 5
     record:
       enabled: true
+      alerts:
+        retain:
+          days: 30
+      detections:
+        retain:
+          days: 30
+      continuous:
+        days: 0
+      motion:
+        days: 0
     snapshots:
       enabled: true
+  # Wired Nest cam — full recording OK
   nest_entrance:
     ffmpeg:
       inputs:

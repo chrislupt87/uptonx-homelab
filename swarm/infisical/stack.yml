@@ -7,35 +7,54 @@ services:
       NODE_ENV: production
       ENCRYPTION_KEY: "${INFISICAL_ENCRYPTION_KEY}"
       AUTH_SECRET: "${INFISICAL_AUTH_SECRET}"
-      DB_CONNECTION_URI: "postgresql://infisical:${INFISICAL_POSTGRES_PASSWORD}@postgres:5432/infisical?sslmode=disable"
-      REDIS_URL: "redis://redis:6379"
+      DB_CONNECTION_URI: "postgresql://infisical:${INFISICAL_POSTGRES_PASSWORD}@infisical-postgres:5432/infisical?sslmode=disable"
+      REDIS_URL: "redis://infisical-redis:6379"
       SITE_URL: "https://infisical.uptonx.com"
     ports:
       - "8093:8080"
+    networks:
+      - proxy
+      - internal
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.hostname == ai
 
-  postgres:
-    image: postgres:16-alpine
+  infisical-postgres:
+    image: postgres:16
+    command: ["postgres", "-c", "unix_socket_directories="]
     environment:
       POSTGRES_USER: infisical
       POSTGRES_PASSWORD: "${INFISICAL_POSTGRES_PASSWORD}"
       POSTGRES_DB: infisical
     volumes:
       - /opt/infisical/postgres:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U infisical"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.hostname == ai
 
-  redis:
+  infisical-redis:
     image: redis:7-alpine
+    networks:
+      - internal
     deploy:
       replicas: 1
       placement:
         constraints:
           - node.hostname == ai
+
+networks:
+  proxy:
+    external: true
+  internal:
+    external: true

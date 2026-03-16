@@ -45,6 +45,15 @@ services:
     volumes:
       - /opt/frigate/eufy-data:/data
 
+  mediamtx:
+    container_name: mediamtx
+    image: bluenviron/mediamtx:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      MTX_PROTOCOLS: "tcp"
+      MTX_RTSPADDRESS: ":8553"
+
   eufy-bridge:
     container_name: eufy-bridge
     image: python:3.11-slim
@@ -53,7 +62,8 @@ services:
     privileged: true
     working_dir: /app
     command: >
-      sh -c "pip install -q websockets &&
+      sh -c "apt-get update -qq && apt-get install -y -qq ffmpeg > /dev/null 2>&1 &&
+             pip install -q websockets &&
              python eufy_bridge.py"
     volumes:
       - /opt/frigate/eufy-bridge:/app
@@ -61,7 +71,13 @@ services:
       EUFY_WS_URL: "ws://127.0.0.1:3100"
       BASE_PORT: "63336"
       CAMERA_SERIALS: "T8600P1023450946,T8600P10234314D7,T8600P1023432659"
+      STREAM_MODE: "round-robin"
+      ROTATION_INTERVAL: "300"
       STREAM_TIMEOUT: "30"
+      MEDIAMTX_URL: "rtsp://127.0.0.1:8553"
+      CAMERA_NAMES: "eufy_kitchen,eufy_living_north,eufy_living_south"
     depends_on:
       eufy-security-ws:
+        condition: service_started
+      mediamtx:
         condition: service_started

@@ -1,13 +1,13 @@
 [Unit]
 Description=Kiosk Dashboard (Chromium)
-After=graphical.target
-Wants=graphical.target
+After=graphical.target kiosk-web.service
+Wants=graphical.target kiosk-web.service
 
 [Service]
 Type=simple
 Environment=DISPLAY=:0
 ExecStartPre=/usr/bin/xset -display :0 s off -dpms
-ExecStart=/usr/bin/chromium --kiosk --noerrdialogs --disable-infobars --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI --autoplay-policy=no-user-gesture-required --window-size=1920,1080 --enable-gpu-rasterization --no-sandbox file:///var/www/html/kiosk.html
+ExecStart=/usr/bin/chromium --kiosk --noerrdialogs --disable-infobars --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI --autoplay-policy=no-user-gesture-required --window-size=1920,1080 --enable-gpu-rasterization --no-sandbox http://127.0.0.1:8089/kiosk.html
 Restart=always
 RestartSec=3
 

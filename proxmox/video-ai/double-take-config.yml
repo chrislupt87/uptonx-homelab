@@ -11,6 +11,11 @@ frigate:
     - reolink_86
     - reolink_87
     - tapo_46
+    - eufy_living_pan
+    - eufy_kitchen
+    - nest_living_north
+    - nest_living_south
+    - nest_entrance
   labels:
     - person
   attempts:
@@ -21,7 +26,7 @@ detectors:
   compreface:
     enabled: true
     url: http://compreface:8000
-    recognition_key: PLACEHOLDER
+    recognition_key: 81491332-1960-4d3c-9c8e-a3be14b4e853
 
 confidence: 60
 unknown_confidence: 40
